@@ -69,9 +69,9 @@ const withSendETHFormState = WrappedComponent => {
 
       this.props.client
         .getGasLimit({
+          value: this.props.client.toWei(utils.sanitize(ethAmount)),
           from: this.props.from,
-          to: this.state.toAddress,
-          value: this.props.client.toWei(utils.sanitize(ethAmount))
+          to: this.state.toAddress
         })
         .then(({ gasLimit }) =>
           this.setState({

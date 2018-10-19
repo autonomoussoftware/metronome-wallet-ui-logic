@@ -1,5 +1,7 @@
-import { sanitize } from './sanitizers'
 import BigNumber from 'bignumber.js'
+import PropTypes from 'prop-types'
+
+import { sanitize } from './sanitizers'
 
 export { sanitizeMnemonic, sanitizeInput, sanitize } from './sanitizers'
 export { createTransactionParser } from './createTransactionParser'
@@ -51,3 +53,21 @@ export function isFailed(tx, confirmations) {
 export function isPending(tx, confirmations) {
   return !isFailed(tx, confirmations) && confirmations < 6
 }
+
+export const errorPropTypes = (...fields) => {
+  const shape = fields.reduce((acc, fieldName) => {
+    acc[fieldName] = PropTypes.oneOfType([
+      PropTypes.arrayOf(PropTypes.string),
+      PropTypes.string
+    ])
+    return acc
+  }, {})
+  return PropTypes.shape(shape).isRequired
+}
+
+export const statusPropTypes = PropTypes.oneOf([
+  'init',
+  'pending',
+  'success',
+  'failure'
+]).isRequired

@@ -1,12 +1,13 @@
+import { connect } from 'react-redux'
+import PropTypes from 'prop-types'
+import debounce from 'lodash/debounce'
+import React from 'react'
+
 import { getInitialState } from './withGasEditorState'
 import * as validators from '../validators'
 import * as selectors from '../selectors'
 import { withClient } from './clientContext'
-import { connect } from 'react-redux'
 import * as utils from '../utils'
-import PropTypes from 'prop-types'
-import debounce from 'lodash/debounce'
-import React from 'react'
 
 const withConvertETHtoMETState = WrappedComponent => {
   class Container extends React.Component {
@@ -35,6 +36,7 @@ const withConvertETHtoMETState = WrappedComponent => {
       ...getInitialState('MET', this.props.client, this.props.config),
       gasEstimateError: false,
       estimateError: null,
+      useMinimum: true,
       ethAmount: null,
       usdAmount: null,
       estimate: null,
@@ -62,7 +64,12 @@ const withConvertETHtoMETState = WrappedComponent => {
         ...state,
         ...utils.syncAmounts({ state, ETHprice, id, value, client }),
         gasEstimateError: id === 'gasLimit' ? false : state.gasEstimateError,
-        errors: { ...state.errors, [id]: null },
+        errors: {
+          ...state.errors,
+          [id]: null,
+          useMinimum:
+            id === 'estimate' && value !== null ? null : state.errors.useMinimum
+        },
         [id]: utils.sanitizeInput(value)
       }))
 
@@ -118,6 +125,10 @@ const withConvertETHtoMETState = WrappedComponent => {
 
     onSubmit = password =>
       this.props.client.convertEth({
+        minReturn:
+          this.state.useMinimum && typeof this.state.estimate === 'string'
+            ? this.state.estimate
+            : undefined,
         gasPrice: this.props.client.toWei(this.state.gasPrice, 'gwei'),
         gas: this.state.gasLimit,
         password,
@@ -126,13 +137,14 @@ const withConvertETHtoMETState = WrappedComponent => {
       })
 
     validate = () => {
-      const { ethAmount, gasPrice, gasLimit } = this.state
+      const { ethAmount, gasPrice, gasLimit, useMinimum, estimate } = this.state
       const { client } = this.props
       const max = client.fromWei(this.props.availableETH)
       const errors = {
         ...validators.validateEthAmount(client, ethAmount, max),
         ...validators.validateGasPrice(client, gasPrice),
-        ...validators.validateGasLimit(client, gasLimit)
+        ...validators.validateGasLimit(client, gasLimit),
+        ...validators.validateUseMinimum(useMinimum, estimate)
       }
       const hasErrors = Object.keys(errors).length > 0
       if (hasErrors) this.setState({ errors })
@@ -144,6 +156,16 @@ const withConvertETHtoMETState = WrappedComponent => {
       this.onInputChange({ id: 'ethAmount', value: ethAmount })
     }
 
+    onUseMinimumToggle = () =>
+      this.setState(state => ({
+        ...state,
+        useMinimum: !state.useMinimum,
+        errors: {
+          ...state.errors,
+          useMinimum: null
+        }
+      }))
+
     render() {
       const amountFieldsProps = utils.getAmountFieldsProps({
         ethAmount: this.state.ethAmount,
@@ -152,6 +174,7 @@ const withConvertETHtoMETState = WrappedComponent => {
 
       return (
         <WrappedComponent
+          onUseMinimumToggle={this.onUseMinimumToggle}
           onInputChange={this.onInputChange}
           onMaxClick={this.onMaxClick}
           resetForm={this.resetForm}

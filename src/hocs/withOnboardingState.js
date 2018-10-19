@@ -6,33 +6,6 @@ import * as utils from '../utils'
 import PropTypes from 'prop-types'
 import React from 'react'
 
-/**
- * Returns an interpolated CSS hue value between red & green
- * based on passwordEntropy / targetEntropy ratio
- *
- *   ratio === 0 -> red
- *   ratio  <  1 -> orange
- *   ratio >=  1 -> green
- *
- *   @param {number} ratio passwordEntropy / targetEntropy ratio
- */
-function getPasswordStrengthHue(ratio) {
-  // Hues are adapted to match the theme's success and danger colors
-  const orangeHue = 50
-  const greenHue = 139
-  const redHue = 11
-
-  return ratio < 1 ? ratio * orangeHue + redHue : greenHue
-}
-
-function getPasswordStrengthMessage(ratio) {
-  if (ratio > 0 && ratio < 0.75) return 'Too weak'
-  if (ratio >= 0.75 && ratio < 1) return 'Almost there...'
-  if (ratio >= 1 && ratio < 1.5) return 'Strong'
-  if (ratio >= 1.5) return 'Very strong'
-  return ''
-}
-
 const withOnboardingState = WrappedComponent => {
   class Container extends React.Component {
     static propTypes = {
@@ -56,6 +29,8 @@ const withOnboardingState = WrappedComponent => {
       areTermsAccepted: false,
       isMnemonicCopied: false,
       useUserMnemonic: false,
+      licenseCheckbox: false,
+      termsCheckbox: false,
       passwordAgain: null,
       mnemonicAgain: null,
       userMnemonic: null,
@@ -70,7 +45,11 @@ const withOnboardingState = WrappedComponent => {
         .then(mnemonic => this.setState({ mnemonic }))
     }
 
-    onTermsAccepted = () => this.setState({ areTermsAccepted: true })
+    onTermsAccepted = () => {
+      if (this.state.licenseCheckbox && this.state.termsCheckbox) {
+        this.setState({ areTermsAccepted: true })
+      }
+    }
 
     onPasswordSubmit = ({ clearOnError = false }) => {
       const { password, passwordAgain } = this.state
@@ -80,11 +59,12 @@ const withOnboardingState = WrappedComponent => {
         this.props.config,
         password
       )
-
       if (!errors.password && !passwordAgain) {
-        errors.passwordAgain = 'Repeat the PIN'
+        errors.passwordAgain = `Repeat the ${clearOnError ? 'PIN' : 'password'}`
       } else if (!errors.password && passwordAgain !== password) {
-        errors.passwordAgain = "PINs don't match"
+        errors.passwordAgain = `${
+          clearOnError ? 'PINs' : 'Passwords'
+        } don't match`
       }
       if (Object.keys(errors).length > 0) {
         return this.setState({
@@ -92,7 +72,6 @@ const withOnboardingState = WrappedComponent => {
           errors
         })
       }
-
       this.setState({ isPasswordDefined: true })
     }
 
@@ -120,7 +99,9 @@ const withOnboardingState = WrappedComponent => {
       }))
     }
 
-    onMnemonicAccepted = () => {
+    onMnemonicAccepted = e => {
+      if (e && e.preventDefault) e.preventDefault()
+
       const errors = this.state.useUserMnemonic
         ? validators.validateMnemonic(
             this.props.client,
@@ -163,32 +144,29 @@ const withOnboardingState = WrappedComponent => {
     }
 
     render() {
-      const passwordEntropy = this.state.password
-        ? this.props.client.getStringEntropy(this.state.password)
-        : 0
+      const getWordsAmount = phrase =>
+        utils.sanitizeMnemonic(phrase || '').split(' ').length
 
-      const passwordStrengthRatio =
-        passwordEntropy / this.props.config.REQUIRED_PASSWORD_ENTROPY
+      const shouldSubmit = phrase => getWordsAmount(phrase) === 12
 
-      const passwordStrengthMessage = getPasswordStrengthMessage(
-        passwordStrengthRatio
-      )
-
-      const passwordStrengthHue = getPasswordStrengthHue(passwordStrengthRatio)
+      const getTooltip = phrase =>
+        shouldSubmit(phrase)
+          ? null
+          : 'A recovery phrase must have exactly 12 words'
 
       return (
         <WrappedComponent
           onUseUserMnemonicToggled={this.onUseUserMnemonicToggled}
+          requiredPasswordEntropy={this.props.config.REQUIRED_PASSWORD_ENTROPY}
           onMnemonicCopiedToggled={this.onMnemonicCopiedToggled}
-          passwordStrengthMessage={passwordStrengthMessage}
-          passwordStrengthRatio={passwordStrengthRatio}
-          passwordStrengthHue={passwordStrengthHue}
           onMnemonicAccepted={this.onMnemonicAccepted}
           onTermsLinkClick={this.props.client.onTermsLinkClick}
           onPasswordSubmit={this.onPasswordSubmit}
           onTermsAccepted={this.onTermsAccepted}
           onInputChange={this.onInputChange}
+          shouldSubmit={shouldSubmit}
           currentStep={this.getCurrentStep()}
+          getTooltip={getTooltip}
           {...this.state}
         />
       )

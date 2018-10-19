@@ -34,6 +34,7 @@ const withConvertMETtoETHState = WrappedComponent => {
       ...getInitialState('MET', this.props.client, this.props.config),
       gasEstimateError: false,
       estimateError: null,
+      useMinimum: true,
       metAmount: null,
       estimate: null,
       errors: {},
@@ -58,7 +59,12 @@ const withConvertMETtoETHState = WrappedComponent => {
       this.setState(state => ({
         ...state,
         gasEstimateError: id === 'gasLimit' ? false : state.gasEstimateError,
-        errors: { ...state.errors, [id]: null },
+        errors: {
+          ...state.errors,
+          [id]: null,
+          useMinimum:
+            id === 'estimate' && value !== null ? null : state.errors.useMinimum
+        },
         [id]: utils.sanitizeInput(value)
       }))
 
@@ -114,6 +120,10 @@ const withConvertMETtoETHState = WrappedComponent => {
 
     onSubmit = password =>
       this.props.client.convertMet({
+        minReturn:
+          this.state.useMinimum && typeof this.state.estimate === 'string'
+            ? this.state.estimate
+            : undefined,
         gasPrice: this.props.client.toWei(this.state.gasPrice, 'gwei'),
         gas: this.state.gasLimit,
         password,
@@ -122,13 +132,14 @@ const withConvertMETtoETHState = WrappedComponent => {
       })
 
     validate = () => {
-      const { metAmount, gasPrice, gasLimit } = this.state
+      const { metAmount, gasPrice, gasLimit, estimate, useMinimum } = this.state
       const { client } = this.props
       const max = client.fromWei(this.props.availableMET)
       const errors = {
         ...validators.validateMetAmount(client, metAmount, max),
         ...validators.validateGasPrice(client, gasPrice),
-        ...validators.validateGasLimit(client, gasLimit)
+        ...validators.validateGasLimit(client, gasLimit),
+        ...validators.validateUseMinimum(useMinimum, estimate)
       }
       const hasErrors = Object.keys(errors).length > 0
       if (hasErrors) this.setState({ errors })
@@ -140,6 +151,16 @@ const withConvertMETtoETHState = WrappedComponent => {
       this.onInputChange({ id: 'metAmount', value: metAmount })
     }
 
+    onUseMinimumToggle = () =>
+      this.setState(state => ({
+        ...state,
+        useMinimum: !state.useMinimum,
+        errors: {
+          ...state.errors,
+          useMinimum: null
+        }
+      }))
+
     render() {
       const amountFieldsProps = utils.getAmountFieldsProps({
         metAmount: this.state.metAmount
@@ -147,6 +168,7 @@ const withConvertMETtoETHState = WrappedComponent => {
 
       return (
         <WrappedComponent
+          onUseMinimumToggle={this.onUseMinimumToggle}
           onInputChange={this.onInputChange}
           onMaxClick={this.onMaxClick}
           resetForm={this.resetForm}

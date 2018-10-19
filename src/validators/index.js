@@ -120,3 +120,10 @@ export function validatePasswordCreation(
 
   return errors
 }
+
+export function validateUseMinimum(useMinimum, estimate, errors = {}) {
+  if (useMinimum && !estimate) {
+    errors.useMinimum = 'No estimated return. Try again.'
+  }
+  return errors
+}

@@ -63,7 +63,7 @@ const withReceiptState = WrappedComponent => {
   }
 
   const mapStateToProps = (state, { hash }) => {
-    const tx = selectors.getTransactionFromHash(state, { hash })
+    const tx = selectors.getTransactionFromHash(state, { hash }) || {}
 
     return {
       confirmations: selectors.getTxConfirmations(state, { tx }),

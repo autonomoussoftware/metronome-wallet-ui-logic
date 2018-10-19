@@ -9,7 +9,7 @@ const withTxRowState = WrappedComponent => {
     static propTypes = {
       confirmations: PropTypes.number.isRequired,
       config: PropTypes.shape({
-        MTN_TOKEN_ADDR: PropTypes.string.isRequired,
+        MET_TOKEN_ADDR: PropTypes.string.isRequired,
         CONVERTER_ADDR: PropTypes.string.isRequired
       }).isRequired,
       tx: PropTypes.shape({
@@ -27,11 +27,11 @@ const withTxRowState = WrappedComponent => {
 
       return (
         <WrappedComponent
-          MTN_TOKEN_ADDR={config.MTN_TOKEN_ADDR}
+          MET_TOKEN_ADDR={config.MET_TOKEN_ADDR}
           CONVERTER_ADDR={config.CONVERTER_ADDR}
-          confirmations={confirmations}
           isPending={utils.isPending(tx, confirmations)}
           isFailed={utils.isFailed(tx, confirmations)}
+          {...this.props}
           {...tx}
         />
       )

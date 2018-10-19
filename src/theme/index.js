@@ -8,6 +8,7 @@ export default {
     light: '#fff',
     copy: '#545454',
     dark: '#323232',
+    darker: '#1d1d1d',
     translucentDark: '#323232EE',
     lightShade: 'rgba(0, 0, 0, 0.1)',
     darkShade,

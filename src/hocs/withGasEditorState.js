@@ -1,6 +1,9 @@
-import { withClient } from './clientContext'
+import { connect } from 'react-redux'
 import PropTypes from 'prop-types'
 import React from 'react'
+
+import { withClient } from './clientContext'
+import * as selectors from '../selectors'
 
 export const getInitialState = (currency, client, config) => ({
   useCustomGas: false,
@@ -11,10 +14,12 @@ export const getInitialState = (currency, client, config) => ({
 const withGasEditorState = WrappedComponent => {
   class Container extends React.Component {
     static propTypes = {
+      networkGasPrice: PropTypes.string.isRequired,
       onInputChange: PropTypes.func.isRequired,
       useCustomGas: PropTypes.bool.isRequired,
       gasPrice: PropTypes.string.isRequired,
       gasLimit: PropTypes.string.isRequired,
+      dispatch: PropTypes.func.isRequired,
       errors: PropTypes.shape({
         gasPrice: PropTypes.string,
         gasLimit: PropTypes.string
@@ -36,15 +41,15 @@ const withGasEditorState = WrappedComponent => {
       // Avoid getting current price if using custom price
       if (this.props.useCustomGas) return
 
+      // Start using the the cached gas price in store
+      this.props.onInputChange({
+        id: 'gasPrice',
+        value: this.props.client.fromWei(this.props.networkGasPrice, 'gwei')
+      })
+
       this.props.client
         .getGasPrice()
-        .then(({ gasPrice }) => {
-          if (this._isMounted) this.setState({ priceError: false })
-          this.props.onInputChange({
-            id: 'gasPrice',
-            value: this.props.client.fromWei(gasPrice, 'gwei')
-          })
-        })
+        .then(this.updateGasPrice)
         .catch(() => {
           if (this._isMounted) this.setState({ priceError: true })
         })
@@ -52,6 +57,15 @@ const withGasEditorState = WrappedComponent => {
 
     componentWillUnmount() {
       this._isMounted = false
+    }
+
+    updateGasPrice = ({ gasPrice }) => {
+      if (!this._isMounted) return
+      this.setState({ priceError: false })
+      this.props.onInputChange({
+        id: 'gasPrice',
+        value: this.props.client.fromWei(gasPrice, 'gwei')
+      })
     }
 
     onGasToggle = () => {
@@ -70,7 +84,11 @@ const withGasEditorState = WrappedComponent => {
     }
   }
 
-  return withClient(Container)
+  const mapStateToProps = state => ({
+    networkGasPrice: selectors.getNetworkGasPrice(state)
+  })
+
+  return withClient(connect(mapStateToProps)(Container))
 }
 
 export default withGasEditorState

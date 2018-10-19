@@ -22,7 +22,7 @@ const withSendMETFormState = WrappedComponent => {
       config: PropTypes.shape({
         MET_DEFAULT_GAS_LIMIT: PropTypes.string.isRequired,
         DEFAULT_GAS_PRICE: PropTypes.string.isRequired,
-        MTN_TOKEN_ADDR: PropTypes.string.isRequired
+        MET_TOKEN_ADDR: PropTypes.string.isRequired
       }).isRequired,
       from: PropTypes.string.isRequired
     }
@@ -67,7 +67,7 @@ const withSendMETFormState = WrappedComponent => {
       this.props.client
         .getTokensGasLimit({
           value: this.props.client.toWei(utils.sanitize(metAmount)),
-          token: this.props.config.MTN_TOKEN_ADDR,
+          token: this.props.config.MET_TOKEN_ADDR,
           from: this.props.from,
           to: toAddress
         })

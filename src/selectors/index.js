@@ -1,7 +1,7 @@
 import { createSelector } from 'reselect'
 import * as utils from '../utils'
-import sortBy from "lodash/sortBy";
-import get from "lodash/get";
+import sortBy from 'lodash/sortBy'
+import get from 'lodash/get'
 
 export const getClient = (props, client) => client
 
@@ -57,7 +57,7 @@ export const getActiveWalletMtnBalance = createSelector(
   getActiveAddressData,
   getConfig,
   (activeAddressData, config) =>
-    get(activeAddressData, ['token', config.MTN_TOKEN_ADDR, 'balance'], null)
+    get(activeAddressData, ['token', config.MET_TOKEN_ADDR, 'balance'], null)
 )
 
 export const getRates = state => state.rates
@@ -146,6 +146,11 @@ export const getBlockchain = state => state.blockchain
 export const getBlockHeight = createSelector(
   getBlockchain,
   blockchain => blockchain.height
+)
+
+export const getNetworkGasPrice = createSelector(
+  getBlockchain,
+  blockchain => blockchain.gasPrice
 )
 
 /**
