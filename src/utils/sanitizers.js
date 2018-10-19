@@ -29,5 +29,5 @@ export function sanitizeMnemonic(str) {
  * @param {string} str - The string to sanitize
  */
 export function sanitizeInput(str) {
-  return str.replace(/\s+|\n+|\t+/g, '')
+  return typeof str === 'string' ? str.replace(/\s+|\n+|\t+/g, '') : str
 }

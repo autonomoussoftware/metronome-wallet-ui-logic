@@ -48,7 +48,10 @@ const withToolsState = WrappedComponent => {
       return !hasErrors
     }
 
-    onRescanTransactions = () => this.props.client.clearCache()
+    onRescanTransactions = e => {
+      if (e && e.preventDefault) e.preventDefault()
+      this.props.client.clearCache()
+    }
 
     render() {
       const isRecoverEnabled =

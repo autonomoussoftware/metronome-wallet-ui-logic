@@ -18,8 +18,8 @@ const withLoginState = WrappedComponent => {
       error: null
     }
 
-    onSubmit = () => {
-      // e.preventDefault();
+    onSubmit = e => {
+      if (e && e.preventDefault) e.preventDefault()
 
       const errors = this.validate()
       if (Object.keys(errors).length > 0) return this.setState({ errors })
