@@ -29,8 +29,8 @@ const withAuctionState = WrappedComponent => {
 
       const title =
         buyFeatureStatus === 'depleted'
-          ? 'Time Until Daily Auction'
-          : 'Time Remaining in Daily Auction'
+          ? 'Time Until Next Auction'
+          : 'Time Remaining in Auction'
 
       const countdownTargetTimestamp =
         auctionStatus && auctionStatus.nextAuctionStartTime
