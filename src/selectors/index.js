@@ -150,7 +150,8 @@ export const getBlockHeight = createSelector(
 
 export const getNetworkGasPrice = createSelector(
   getBlockchain,
-  blockchain => blockchain.gasPrice
+  getConfig,
+  (blockchain, config) => blockchain.gasPrice || config.DEFAULT_GAS_PRICE
 )
 
 /**
