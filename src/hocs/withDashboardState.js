@@ -12,7 +12,8 @@ const withDashboardState = WrappedComponent => {
       isScanningTx: PropTypes.bool.isRequired,
       address: PropTypes.string.isRequired,
       client: PropTypes.shape({
-        refreshAllTransactions: PropTypes.func.isRequired
+        refreshAllTransactions: PropTypes.func.isRequired,
+        copyToClipboard: PropTypes.func.isRequired
       }).isRequired
     }
 
@@ -50,6 +51,7 @@ const withDashboardState = WrappedComponent => {
       return (
         <WrappedComponent
           sendDisabledReason={sendDisabledReason}
+          copyToClipboard={this.props.client.copyToClipboard}
           onWalletRefresh={this.onWalletRefresh}
           sendDisabled={sendFeatureStatus !== 'ok'}
           {...this.props}
