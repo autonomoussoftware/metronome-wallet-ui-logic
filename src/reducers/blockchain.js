@@ -7,6 +7,16 @@ const initialState = {
 
 const reducer = handleActions(
   {
+    'initial-state-received': (state, { payload }) =>
+      payload.blockchain
+        ? {
+            ...state,
+            gasPrice:
+              payload.blockchain.gasPrice || payload.config.DEFAULT_GAS_PRICE,
+            height: payload.blockchain.height
+          }
+        : state,
+
     'eth-block': (state, { payload }) => ({
       ...state,
       height: payload.number

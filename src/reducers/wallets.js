@@ -11,6 +11,15 @@ const initialState = {
 
 const reducer = handleActions(
   {
+    'initial-state-received': (state, { payload }) =>
+      payload.wallets
+        ? {
+            ...state,
+            ...payload.wallets,
+            isScanningTx: state.isScanningTx
+          }
+        : state,
+
     'create-wallet': (state, { payload }) => ({
       ...state,
       allIds: [...(state.allIds || []), payload.walletId],
