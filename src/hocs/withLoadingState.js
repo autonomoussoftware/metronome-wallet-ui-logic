@@ -87,7 +87,7 @@ const withLoadingState = WrappedComponent => {
   }
 
   const mapStateToProps = state => ({
-    hasBlockHeight: selectors.getBlockHeight(state) !== null,
+    hasBlockHeight: selectors.getBlockHeight(state) > -1,
     hasEthBalance: selectors.getActiveWalletEthBalance(state) !== null,
     hasMetBalance: selectors.getActiveWalletMtnBalance(state) !== null,
     hasEthRate: selectors.getEthRate(state) !== null
@@ -96,7 +96,11 @@ const withLoadingState = WrappedComponent => {
   const mapDispatchToProps = dispatch => ({
     onComplete: () => dispatch({ type: 'required-data-gathered' })
   })
-  return connect(mapStateToProps, mapDispatchToProps)(Container)
+
+  return connect(
+    mapStateToProps,
+    mapDispatchToProps
+  )(Container)
 }
 
 export default withLoadingState
