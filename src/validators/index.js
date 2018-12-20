@@ -14,12 +14,12 @@ function validateAmount(client, amount, propName, max, errors = {}) {
   return errors
 }
 
-export function validateEthAmount(client, ethAmount, max, errors = {}) {
-  return validateAmount(client, ethAmount, 'ethAmount', max, errors)
+export function validateCoinAmount(client, coinAmount, max, errors = {}) {
+  return validateAmount(client, coinAmount, 'coinAmount', max, errors)
 }
 
-export function validateMetAmount(client, mtnAmount, max, errors = {}) {
-  return validateAmount(client, mtnAmount, 'metAmount', max, errors)
+export function validateMetAmount(client, metAmount, max, errors = {}) {
+  return validateAmount(client, metAmount, 'metAmount', max, errors)
 }
 
 export function validateToAddress(client, toAddress, errors = {}) {

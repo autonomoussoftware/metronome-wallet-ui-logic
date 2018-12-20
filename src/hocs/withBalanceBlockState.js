@@ -3,10 +3,10 @@ import * as selectors from '../selectors'
 import { connect } from 'react-redux'
 
 const mapStateToProps = (state, { client }) => ({
-  mtnBalanceWei: selectors.getMtnBalanceWei(state),
-  mtnBalanceUSD: selectors.getMtnBalanceUSD(state),
-  ethBalanceWei: selectors.getEthBalanceWei(state),
-  ethBalanceUSD: selectors.getEthBalanceUSD(state, client)
+  coinBalanceUSD: selectors.getCoinBalanceUSD(state, client),
+  coinBalanceWei: selectors.getCoinBalanceWei(state),
+  metBalanceWei: selectors.getMetBalanceWei(state),
+  metBalanceUSD: selectors.getMetBalanceUSD(state)
 })
 
 export default Component => withClient(connect(mapStateToProps)(Component))

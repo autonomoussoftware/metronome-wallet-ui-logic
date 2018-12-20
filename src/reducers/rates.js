@@ -1,4 +1,4 @@
-import { handleActions } from 'redux-actions'
+import { handleActions, combineActions } from 'redux-actions'
 
 const initialState = {}
 
@@ -12,7 +12,10 @@ const reducer = handleActions(
           }
         : state,
 
-    'eth-price-updated': (state, { payload }) => ({
+    [combineActions(
+      'coin-price-updated',
+      'eth-price-updated' // TODO: remove!
+    )]: (state, { payload }) => ({
       ...state,
       [payload.token]: payload
     }),

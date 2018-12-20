@@ -54,7 +54,7 @@ function getValue(rawTx, tokenData, txType) {
     : rawTx.transaction.value
 }
 
-function getEthSpentInAuction(rawTx, txType) {
+function getCoinSpentInAuction(rawTx, txType) {
   return txType === 'auction' && rawTx.meta
     ? new BigNumber(rawTx.transaction.value)
         .minus(new BigNumber(rawTx.meta.returnedValue))
@@ -150,7 +150,7 @@ export const createTransactionParser = myAddress => rawTx => {
   return {
     mtnBoughtInAuction: getMetBoughtInAuction(rawTx, tokenData, txType),
     contractCallFailed: getContractCallFailed(rawTx),
-    ethSpentInAuction: getEthSpentInAuction(rawTx, txType),
+    coinSpentInAuction: getCoinSpentInAuction(rawTx, txType),
     isCancelApproval: getIsCancelApproval(tokenData),
     approvedValue: getApprovedValue(tokenData),
     convertedFrom,

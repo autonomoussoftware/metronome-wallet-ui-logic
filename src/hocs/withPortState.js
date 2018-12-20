@@ -4,7 +4,7 @@ import { connect } from 'react-redux'
 import PropTypes from 'prop-types'
 import React from 'react'
 
-const withConverterState = WrappedComponent => {
+const withPortState = WrappedComponent => {
   class Container extends React.Component {
     static propTypes = {
       convertFeatureStatus: PropTypes.oneOf(['offline', 'no-coin', 'ok'])
@@ -19,7 +19,7 @@ const withConverterState = WrappedComponent => {
       }).isRequired
     }
 
-    static displayName = `withConverterState(${WrappedComponent.displayName ||
+    static displayName = `withPortState(${WrappedComponent.displayName ||
       WrappedComponent.name})`
 
     render() {
@@ -51,4 +51,4 @@ const withConverterState = WrappedComponent => {
   return withClient(connect(mapStateToProps)(Container))
 }
 
-export default withConverterState
+export default withPortState

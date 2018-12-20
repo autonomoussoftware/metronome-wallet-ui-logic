@@ -1,40 +1,42 @@
 import { getInitialState } from './withGasEditorState'
 import * as validators from '../validators'
-import { withClient } from './clientContext'
 import * as selectors from '../selectors'
+import { withClient } from './clientContext'
 import { connect } from 'react-redux'
 import * as utils from '../utils'
 import PropTypes from 'prop-types'
 import debounce from 'lodash/debounce'
 import React from 'react'
 
-const withSendMETFormState = WrappedComponent => {
+const withPortFormState = WrappedComponent => {
   class Container extends React.Component {
     static propTypes = {
-      availableMET: PropTypes.string.isRequired,
+      tokenRemaining: PropTypes.string.isRequired,
+      availableCoin: PropTypes.string.isRequired,
+      currentPrice: PropTypes.string.isRequired,
+      coinPrice: PropTypes.number.isRequired,
       client: PropTypes.shape({
-        getTokensGasLimit: PropTypes.func.isRequired,
-        isAddress: PropTypes.func.isRequired,
-        sendMet: PropTypes.func.isRequired,
+        getAuctionGasLimit: PropTypes.func.isRequired,
+        buyMetronome: PropTypes.func.isRequired,
         fromWei: PropTypes.func.isRequired,
-        toWei: PropTypes.func.isRequired
+        toWei: PropTypes.func.isRequired,
+        toBN: PropTypes.func.isRequired
       }).isRequired,
       config: PropTypes.shape({
         MET_DEFAULT_GAS_LIMIT: PropTypes.string.isRequired,
-        DEFAULT_GAS_PRICE: PropTypes.string.isRequired,
-        MET_TOKEN_ADDR: PropTypes.string.isRequired
+        DEFAULT_GAS_PRICE: PropTypes.string.isRequired
       }).isRequired,
       from: PropTypes.string.isRequired
     }
 
-    static displayName = `withSendMETFormState(${WrappedComponent.displayName ||
+    static displayName = `withPortFormState(${WrappedComponent.displayName ||
       WrappedComponent.name})`
 
     initialState = {
-      ...getInitialState('MET', this.props.client, this.props.config),
       gasEstimateError: false,
-      toAddress: null,
-      metAmount: null,
+      coinAmount: null,
+      usdAmount: null,
+      ...getInitialState('MET', this.props.client, this.props.config),
       errors: {}
     }
 
@@ -43,60 +45,53 @@ const withSendMETFormState = WrappedComponent => {
     resetForm = () => this.setState(this.initialState)
 
     onInputChange = ({ id, value }) => {
+      const { coinPrice, client } = this.props
       this.setState(state => ({
         ...state,
+        ...utils.syncAmounts({ state, coinPrice, id, value, client }),
         gasEstimateError: id === 'gasLimit' ? false : state.gasEstimateError,
         errors: { ...state.errors, [id]: null },
         [id]: utils.sanitizeInput(value)
       }))
 
       // Estimate gas limit again if parameters changed
-      if (['toAddress', 'metAmount'].includes(id)) this.getGasEstimate()
+      if (['coinAmount'].includes(id)) this.getGasEstimate()
     }
 
     getGasEstimate = debounce(() => {
-      const { metAmount, toAddress } = this.state
+      const { coinAmount } = this.state
 
-      if (
-        !this.props.client.isAddress(toAddress) ||
-        !utils.isWeiable(this.props.client, metAmount)
-      ) {
-        return
-      }
+      if (!utils.isWeiable(this.props.client, coinAmount)) return
 
       this.props.client
-        .getTokensGasLimit({
-          value: this.props.client.toWei(utils.sanitize(metAmount)),
-          token: this.props.config.MET_TOKEN_ADDR,
-          from: this.props.from,
-          to: toAddress
+        .getAuctionGasLimit({
+          value: this.props.client.toWei(utils.sanitize(coinAmount)),
+          from: this.props.from
         })
-        .then(({ gasLimit }) =>
+        .then(({ gasLimit }) => {
           this.setState({
             gasEstimateError: false,
             gasLimit: gasLimit.toString()
           })
-        )
+        })
         .catch(() => this.setState({ gasEstimateError: true }))
     }, 500)
 
     onSubmit = password =>
-      this.props.client.sendMet({
+      this.props.client.buyMetronome({
         gasPrice: this.props.client.toWei(this.state.gasPrice, 'gwei'),
         gas: this.state.gasLimit,
         password,
-        value: this.props.client.toWei(utils.sanitize(this.state.metAmount)),
-        from: this.props.from,
-        to: this.state.toAddress
+        value: this.props.client.toWei(utils.sanitize(this.state.coinAmount)),
+        from: this.props.from
       })
 
     validate = () => {
-      const { metAmount, toAddress, gasPrice, gasLimit } = this.state
+      const { coinAmount, gasPrice, gasLimit } = this.state
       const { client } = this.props
-      const max = client.fromWei(this.props.availableMET)
+      const max = client.fromWei(this.props.availableCoin)
       const errors = {
-        ...validators.validateToAddress(client, toAddress),
-        ...validators.validateMetAmount(client, metAmount, max),
+        ...validators.validateCoinAmount(client, coinAmount, max),
         ...validators.validateGasPrice(client, gasPrice),
         ...validators.validateGasLimit(client, gasLimit)
       }
@@ -106,13 +101,21 @@ const withSendMETFormState = WrappedComponent => {
     }
 
     onMaxClick = () => {
-      const metAmount = this.props.client.fromWei(this.props.availableMET)
-      this.onInputChange({ id: 'metAmount', value: metAmount })
+      const coinAmount = this.props.client.fromWei(this.props.availableCoin)
+      this.onInputChange({ id: 'coinAmount', value: coinAmount })
     }
 
     render() {
       const amountFieldsProps = utils.getAmountFieldsProps({
-        metAmount: this.state.metAmount
+        coinAmount: this.state.coinAmount,
+        usdAmount: this.state.usdAmount
+      })
+
+      const expected = utils.getPurchaseEstimate({
+        remaining: this.props.tokenRemaining,
+        amount: this.state.coinAmount,
+        client: this.props.client,
+        rate: this.props.currentPrice
       })
 
       return (
@@ -123,8 +126,11 @@ const withSendMETFormState = WrappedComponent => {
           onSubmit={this.onSubmit}
           {...this.props}
           {...this.state}
-          metPlaceholder={amountFieldsProps.metPlaceholder}
-          metAmount={amountFieldsProps.metAmount}
+          {...expected}
+          coinPlaceholder={amountFieldsProps.coinPlaceholder}
+          usdPlaceholder={amountFieldsProps.usdPlaceholder}
+          coinAmount={amountFieldsProps.coinAmount}
+          usdAmount={amountFieldsProps.usdAmount}
           validate={this.validate}
         />
       )
@@ -132,7 +138,10 @@ const withSendMETFormState = WrappedComponent => {
   }
 
   const mapStateToProps = state => ({
-    availableMET: selectors.getMetBalanceWei(state),
+    tokenRemaining: selectors.getAuctionStatus(state).tokenRemaining,
+    availableCoin: selectors.getCoinBalanceWei(state),
+    currentPrice: selectors.getAuctionStatus(state).currentPrice,
+    coinPrice: selectors.getCoinRate(state),
     config: selectors.getConfig(state),
     from: selectors.getActiveAddress(state)
   })
@@ -140,4 +149,4 @@ const withSendMETFormState = WrappedComponent => {
   return connect(mapStateToProps)(withClient(Container))
 }
 
-export default withSendMETFormState
+export default withPortFormState

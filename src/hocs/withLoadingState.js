@@ -14,9 +14,9 @@ const withLoadingState = WrappedComponent => {
   class Container extends React.Component {
     static propTypes = {
       hasBlockHeight: PropTypes.bool.isRequired,
-      hasEthBalance: PropTypes.bool.isRequired,
+      hasCoinBalance: PropTypes.bool.isRequired,
       hasMetBalance: PropTypes.bool.isRequired,
-      hasEthRate: PropTypes.bool.isRequired,
+      hasCoinRate: PropTypes.bool.isRequired,
       onComplete: PropTypes.func.isRequired
     }
 
@@ -25,20 +25,20 @@ const withLoadingState = WrappedComponent => {
 
     state = {
       hasBlockHeight: false,
-      hasEthBalance: false,
+      hasCoinBalance: false,
       hasMetBalance: false,
-      hasEthRate: false
+      hasCoinRate: false
     }
 
     checkFinished = () => {
       const {
         hasBlockHeight,
-        hasEthBalance,
+        hasCoinBalance,
         hasMetBalance,
-        hasEthRate
+        hasCoinRate
       } = this.state
 
-      if (hasBlockHeight && hasEthBalance && hasMetBalance && hasEthRate) {
+      if (hasBlockHeight && hasCoinBalance && hasMetBalance && hasCoinRate) {
         clearInterval(this.interval)
         setTimeout(this.props.onComplete, ON_COMPLETE_DELAY)
       }
@@ -47,19 +47,19 @@ const withLoadingState = WrappedComponent => {
     checkTasks = () => {
       const {
         hasBlockHeight,
-        hasEthBalance,
+        hasCoinBalance,
         hasMetBalance,
-        hasEthRate
+        hasCoinRate
       } = this.state
 
       if (this.props.hasBlockHeight && !hasBlockHeight) {
         return this.setState({ hasBlockHeight: true }, this.checkFinished)
       }
-      if (this.props.hasEthRate && !hasEthRate) {
-        return this.setState({ hasEthRate: true }, this.checkFinished)
+      if (this.props.hasCoinRate && !hasCoinRate) {
+        return this.setState({ hasCoinRate: true }, this.checkFinished)
       }
-      if (this.props.hasEthBalance && !hasEthBalance) {
-        return this.setState({ hasEthBalance: true }, this.checkFinished)
+      if (this.props.hasCoinBalance && !hasCoinBalance) {
+        return this.setState({ hasCoinBalance: true }, this.checkFinished)
       }
       if (this.props.hasMetBalance && !hasMetBalance) {
         return this.setState({ hasMetBalance: true }, this.checkFinished)
@@ -78,9 +78,9 @@ const withLoadingState = WrappedComponent => {
       return (
         <WrappedComponent
           hasBlockHeight={this.state.hasBlockHeight}
-          hasEthBalance={this.state.hasEthBalance}
+          hasCoinBalance={this.state.hasCoinBalance}
           hasMetBalance={this.state.hasMetBalance}
-          hasEthRate={this.state.hasEthRate}
+          hasCoinRate={this.state.hasCoinRate}
         />
       )
     }
@@ -88,9 +88,9 @@ const withLoadingState = WrappedComponent => {
 
   const mapStateToProps = state => ({
     hasBlockHeight: selectors.getBlockHeight(state) > -1,
-    hasEthBalance: selectors.getActiveWalletEthBalance(state) !== null,
-    hasMetBalance: selectors.getActiveWalletMtnBalance(state) !== null,
-    hasEthRate: selectors.getEthRate(state) !== null
+    hasCoinBalance: selectors.getActiveWalletCoinBalance(state) !== null,
+    hasMetBalance: selectors.getActiveWalletMetBalance(state) !== null,
+    hasCoinRate: selectors.getCoinRate(state) !== null
   })
 
   const mapDispatchToProps = dispatch => ({

@@ -8,7 +8,7 @@ import PropTypes from 'prop-types'
 import debounce from 'lodash/debounce'
 import React from 'react'
 
-const withConvertMETtoETHState = WrappedComponent => {
+const withConvertMETtoCoinState = WrappedComponent => {
   class Container extends React.Component {
     static propTypes = {
       converterPrice: PropTypes.string.isRequired,
@@ -27,7 +27,7 @@ const withConvertMETtoETHState = WrappedComponent => {
       from: PropTypes.string.isRequired
     }
 
-    static displayName = `withConvertMETtoETHState(${WrappedComponent.displayName ||
+    static displayName = `withConvertMETtoCoinState(${WrappedComponent.displayName ||
       WrappedComponent.name})`
 
     initialState = {
@@ -185,7 +185,7 @@ const withConvertMETtoETHState = WrappedComponent => {
 
   const mapStateToProps = state => ({
     converterPrice: selectors.getConverterPrice(state),
-    availableMET: selectors.getMtnBalanceWei(state),
+    availableMET: selectors.getMetBalanceWei(state),
     config: selectors.getConfig(state),
     from: selectors.getActiveAddress(state)
   })
@@ -193,4 +193,4 @@ const withConvertMETtoETHState = WrappedComponent => {
   return connect(mapStateToProps)(withClient(Container))
 }
 
-export default withConvertMETtoETHState
+export default withConvertMETtoCoinState

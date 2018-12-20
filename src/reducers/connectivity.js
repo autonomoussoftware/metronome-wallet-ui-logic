@@ -10,8 +10,10 @@ const CONNECTIVITY_PROOF_ACTIONS = [
   'auction-status-updated',
   'auction-status-updated',
   'wallet-state-changed',
-  'eth-price-updated',
-  'eth-block'
+  'coin-price-updated',
+  'eth-price-updated', // TODO: remove!
+  'coin-block',
+  'eth-block' // TODO: remove!
 ]
 
 const reducer = handleActions(

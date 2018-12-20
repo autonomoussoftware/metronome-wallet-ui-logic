@@ -9,16 +9,16 @@ import * as selectors from '../selectors'
 import { withClient } from './clientContext'
 import * as utils from '../utils'
 
-const withConvertETHtoMETState = WrappedComponent => {
+const withConvertCoinToMETState = WrappedComponent => {
   class Container extends React.Component {
     static propTypes = {
       converterPrice: PropTypes.string.isRequired,
-      availableETH: PropTypes.string.isRequired,
-      ETHprice: PropTypes.number.isRequired,
+      availableCoin: PropTypes.string.isRequired,
+      coinPrice: PropTypes.number.isRequired,
       client: PropTypes.shape({
-        getConvertEthEstimate: PropTypes.func.isRequired,
-        getConvertEthGasLimit: PropTypes.func.isRequired,
-        convertEth: PropTypes.func.isRequired,
+        getConvertCoinEstimate: PropTypes.func.isRequired,
+        getConvertCoinGasLimit: PropTypes.func.isRequired,
+        convertCoin: PropTypes.func.isRequired,
         fromWei: PropTypes.func.isRequired,
         toWei: PropTypes.func.isRequired
       }).isRequired,
@@ -29,7 +29,7 @@ const withConvertETHtoMETState = WrappedComponent => {
       from: PropTypes.string.isRequired
     }
 
-    static displayName = `withConvertETHtoMETState(${WrappedComponent.displayName ||
+    static displayName = `withConvertCoinToMETState(${WrappedComponent.displayName ||
       WrappedComponent.name})`
 
     initialState = {
@@ -37,7 +37,7 @@ const withConvertETHtoMETState = WrappedComponent => {
       gasEstimateError: false,
       estimateError: null,
       useMinimum: true,
-      ethAmount: null,
+      coinAmount: null,
       usdAmount: null,
       estimate: null,
       errors: {},
@@ -48,21 +48,21 @@ const withConvertETHtoMETState = WrappedComponent => {
 
     resetForm = () => this.setState(this.initialState)
 
-    componentDidUpdate({ converterPrice }, { ethAmount }) {
+    componentDidUpdate({ converterPrice }, { coinAmount }) {
       // Recalculate estimate if amount or price changed
       if (
         this.props.converterPrice !== converterPrice ||
-        this.state.ethAmount !== ethAmount
+        this.state.coinAmount !== coinAmount
       ) {
         this.getConversionEstimate()
       }
     }
 
     onInputChange = ({ id, value }) => {
-      const { ETHprice, client } = this.props
+      const { coinPrice, client } = this.props
       this.setState(state => ({
         ...state,
-        ...utils.syncAmounts({ state, ETHprice, id, value, client }),
+        ...utils.syncAmounts({ state, coinPrice, id, value, client }),
         gasEstimateError: id === 'gasLimit' ? false : state.gasEstimateError,
         errors: {
           ...state.errors,
@@ -74,17 +74,17 @@ const withConvertETHtoMETState = WrappedComponent => {
       }))
 
       // Estimate gas limit again if parameters changed
-      if (['ethAmount'].includes(id)) this.getGasEstimate()
+      if (['coinAmount'].includes(id)) this.getGasEstimate()
     }
 
     getGasEstimate = debounce(() => {
-      const { ethAmount } = this.state
+      const { coinAmount } = this.state
 
-      if (!utils.isWeiable(this.props.client, ethAmount)) return
+      if (!utils.isWeiable(this.props.client, coinAmount)) return
 
       this.props.client
-        .getConvertEthGasLimit({
-          value: this.props.client.toWei(utils.sanitize(ethAmount)),
+        .getConvertCoinGasLimit({
+          value: this.props.client.toWei(utils.sanitize(coinAmount)),
           from: this.props.from
         })
         .then(({ gasLimit }) =>
@@ -97,24 +97,24 @@ const withConvertETHtoMETState = WrappedComponent => {
     }, 500)
 
     getConversionEstimate = debounce(() => {
-      const { ethAmount } = this.state
+      const { coinAmount } = this.state
       const { client } = this.props
 
       if (
-        !utils.isWeiable(client, ethAmount) ||
-        !utils.isGreaterThanZero(client, ethAmount)
+        !utils.isWeiable(client, coinAmount) ||
+        !utils.isGreaterThanZero(client, coinAmount)
       ) {
         return this.setState({ estimateError: null, estimate: null })
       }
       client
-        .getConvertEthEstimate({
-          value: client.toWei(utils.sanitize(ethAmount))
+        .getConvertCoinEstimate({
+          value: client.toWei(utils.sanitize(coinAmount))
         })
         .then(({ result }) => {
           const rate = utils.getConversionRate(
             client,
             result,
-            client.toWei(utils.sanitize(ethAmount))
+            client.toWei(utils.sanitize(coinAmount))
           )
           this.setState({ estimateError: null, estimate: result, rate })
         })
@@ -124,7 +124,7 @@ const withConvertETHtoMETState = WrappedComponent => {
     }, 500)
 
     onSubmit = password =>
-      this.props.client.convertEth({
+      this.props.client.convertCoin({
         minReturn:
           this.state.useMinimum && typeof this.state.estimate === 'string'
             ? this.state.estimate
@@ -132,16 +132,22 @@ const withConvertETHtoMETState = WrappedComponent => {
         gasPrice: this.props.client.toWei(this.state.gasPrice, 'gwei'),
         gas: this.state.gasLimit,
         password,
-        value: this.props.client.toWei(utils.sanitize(this.state.ethAmount)),
+        value: this.props.client.toWei(utils.sanitize(this.state.coinAmount)),
         from: this.props.from
       })
 
     validate = () => {
-      const { ethAmount, gasPrice, gasLimit, useMinimum, estimate } = this.state
+      const {
+        coinAmount,
+        gasPrice,
+        gasLimit,
+        useMinimum,
+        estimate
+      } = this.state
       const { client } = this.props
-      const max = client.fromWei(this.props.availableETH)
+      const max = client.fromWei(this.props.availableCoin)
       const errors = {
-        ...validators.validateEthAmount(client, ethAmount, max),
+        ...validators.validateCoinAmount(client, coinAmount, max),
         ...validators.validateGasPrice(client, gasPrice),
         ...validators.validateGasLimit(client, gasLimit),
         ...validators.validateUseMinimum(useMinimum, estimate)
@@ -152,8 +158,8 @@ const withConvertETHtoMETState = WrappedComponent => {
     }
 
     onMaxClick = () => {
-      const ethAmount = this.props.client.fromWei(this.props.availableETH)
-      this.onInputChange({ id: 'ethAmount', value: ethAmount })
+      const coinAmount = this.props.client.fromWei(this.props.availableCoin)
+      this.onInputChange({ id: 'coinAmount', value: coinAmount })
     }
 
     onUseMinimumToggle = () =>
@@ -168,7 +174,7 @@ const withConvertETHtoMETState = WrappedComponent => {
 
     render() {
       const amountFieldsProps = utils.getAmountFieldsProps({
-        ethAmount: this.state.ethAmount,
+        coinAmount: this.state.coinAmount,
         usdAmount: this.state.usdAmount
       })
 
@@ -181,9 +187,9 @@ const withConvertETHtoMETState = WrappedComponent => {
           onSubmit={this.onSubmit}
           {...this.props}
           {...this.state}
-          ethPlaceholder={amountFieldsProps.ethPlaceholder}
+          coinPlaceholder={amountFieldsProps.coinPlaceholder}
           usdPlaceholder={amountFieldsProps.usdPlaceholder}
-          ethAmount={amountFieldsProps.ethAmount}
+          coinAmount={amountFieldsProps.coinAmount}
           usdAmount={amountFieldsProps.usdAmount}
           validate={this.validate}
         />
@@ -193,8 +199,8 @@ const withConvertETHtoMETState = WrappedComponent => {
 
   const mapStateToProps = state => ({
     converterPrice: selectors.getConverterPrice(state),
-    availableETH: selectors.getEthBalanceWei(state),
-    ETHprice: selectors.getEthRate(state),
+    availableCoin: selectors.getCoinBalanceWei(state),
+    coinPrice: selectors.getCoinRate(state),
     config: selectors.getConfig(state),
     from: selectors.getActiveAddress(state)
   })
@@ -202,4 +208,4 @@ const withConvertETHtoMETState = WrappedComponent => {
   return connect(mapStateToProps)(withClient(Container))
 }
 
-export default withConvertETHtoMETState
+export default withConvertCoinToMETState

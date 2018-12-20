@@ -15,6 +15,7 @@ export default {
     darkSuccess: 'rgba(119, 132, 125, 0.68)',
     success: '#45d48d',
     danger: '#d46045',
+    darkDanger: 'rgba(212, 96, 69, 0.12)',
     weak: '#888',
 
     // BACKGROUNDS

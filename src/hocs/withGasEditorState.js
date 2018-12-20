@@ -14,7 +14,7 @@ export const getInitialState = (currency, client, config) => ({
 const withGasEditorState = WrappedComponent => {
   class Container extends React.Component {
     static propTypes = {
-      networkGasPrice: PropTypes.string.isRequired,
+      chainGasPrice: PropTypes.string.isRequired,
       onInputChange: PropTypes.func.isRequired,
       useCustomGas: PropTypes.bool.isRequired,
       gasPrice: PropTypes.string.isRequired,
@@ -44,7 +44,7 @@ const withGasEditorState = WrappedComponent => {
       // Start using the the cached gas price in store
       this.props.onInputChange({
         id: 'gasPrice',
-        value: this.props.client.fromWei(this.props.networkGasPrice, 'gwei')
+        value: this.props.client.fromWei(this.props.chainGasPrice, 'gwei')
       })
 
       this.props.client
@@ -85,7 +85,7 @@ const withGasEditorState = WrappedComponent => {
   }
 
   const mapStateToProps = state => ({
-    networkGasPrice: selectors.getNetworkGasPrice(state)
+    chainGasPrice: selectors.getChainGasPrice(state)
   })
 
   return withClient(connect(mapStateToProps)(Container))

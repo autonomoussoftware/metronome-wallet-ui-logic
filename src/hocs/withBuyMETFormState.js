@@ -12,9 +12,9 @@ const withBuyMETFormState = WrappedComponent => {
   class Container extends React.Component {
     static propTypes = {
       tokenRemaining: PropTypes.string.isRequired,
+      availableCoin: PropTypes.string.isRequired,
       currentPrice: PropTypes.string.isRequired,
-      availableETH: PropTypes.string.isRequired,
-      ETHprice: PropTypes.number.isRequired,
+      coinPrice: PropTypes.number.isRequired,
       client: PropTypes.shape({
         getAuctionGasLimit: PropTypes.func.isRequired,
         buyMetronome: PropTypes.func.isRequired,
@@ -34,7 +34,7 @@ const withBuyMETFormState = WrappedComponent => {
 
     initialState = {
       gasEstimateError: false,
-      ethAmount: null,
+      coinAmount: null,
       usdAmount: null,
       ...getInitialState('MET', this.props.client, this.props.config),
       errors: {}
@@ -45,27 +45,27 @@ const withBuyMETFormState = WrappedComponent => {
     resetForm = () => this.setState(this.initialState)
 
     onInputChange = ({ id, value }) => {
-      const { ETHprice, client } = this.props
+      const { coinPrice, client } = this.props
       this.setState(state => ({
         ...state,
-        ...utils.syncAmounts({ state, ETHprice, id, value, client }),
+        ...utils.syncAmounts({ state, coinPrice, id, value, client }),
         gasEstimateError: id === 'gasLimit' ? false : state.gasEstimateError,
         errors: { ...state.errors, [id]: null },
         [id]: utils.sanitizeInput(value)
       }))
 
       // Estimate gas limit again if parameters changed
-      if (['ethAmount'].includes(id)) this.getGasEstimate()
+      if (['coinAmount'].includes(id)) this.getGasEstimate()
     }
 
     getGasEstimate = debounce(() => {
-      const { ethAmount } = this.state
+      const { coinAmount } = this.state
 
-      if (!utils.isWeiable(this.props.client, ethAmount)) return
+      if (!utils.isWeiable(this.props.client, coinAmount)) return
 
       this.props.client
         .getAuctionGasLimit({
-          value: this.props.client.toWei(utils.sanitize(ethAmount)),
+          value: this.props.client.toWei(utils.sanitize(coinAmount)),
           from: this.props.from
         })
         .then(({ gasLimit }) => {
@@ -82,16 +82,16 @@ const withBuyMETFormState = WrappedComponent => {
         gasPrice: this.props.client.toWei(this.state.gasPrice, 'gwei'),
         gas: this.state.gasLimit,
         password,
-        value: this.props.client.toWei(utils.sanitize(this.state.ethAmount)),
+        value: this.props.client.toWei(utils.sanitize(this.state.coinAmount)),
         from: this.props.from
       })
 
     validate = () => {
-      const { ethAmount, gasPrice, gasLimit } = this.state
+      const { coinAmount, gasPrice, gasLimit } = this.state
       const { client } = this.props
-      const max = client.fromWei(this.props.availableETH)
+      const max = client.fromWei(this.props.availableCoin)
       const errors = {
-        ...validators.validateEthAmount(client, ethAmount, max),
+        ...validators.validateCoinAmount(client, coinAmount, max),
         ...validators.validateGasPrice(client, gasPrice),
         ...validators.validateGasLimit(client, gasLimit)
       }
@@ -101,19 +101,19 @@ const withBuyMETFormState = WrappedComponent => {
     }
 
     onMaxClick = () => {
-      const ethAmount = this.props.client.fromWei(this.props.availableETH)
-      this.onInputChange({ id: 'ethAmount', value: ethAmount })
+      const coinAmount = this.props.client.fromWei(this.props.availableCoin)
+      this.onInputChange({ id: 'coinAmount', value: coinAmount })
     }
 
     render() {
       const amountFieldsProps = utils.getAmountFieldsProps({
-        ethAmount: this.state.ethAmount,
+        coinAmount: this.state.coinAmount,
         usdAmount: this.state.usdAmount
       })
 
       const expected = utils.getPurchaseEstimate({
         remaining: this.props.tokenRemaining,
-        amount: this.state.ethAmount,
+        amount: this.state.coinAmount,
         client: this.props.client,
         rate: this.props.currentPrice
       })
@@ -127,9 +127,9 @@ const withBuyMETFormState = WrappedComponent => {
           {...this.props}
           {...this.state}
           {...expected}
-          ethPlaceholder={amountFieldsProps.ethPlaceholder}
+          coinPlaceholder={amountFieldsProps.coinPlaceholder}
           usdPlaceholder={amountFieldsProps.usdPlaceholder}
-          ethAmount={amountFieldsProps.ethAmount}
+          coinAmount={amountFieldsProps.coinAmount}
           usdAmount={amountFieldsProps.usdAmount}
           validate={this.validate}
         />
@@ -139,9 +139,9 @@ const withBuyMETFormState = WrappedComponent => {
 
   const mapStateToProps = state => ({
     tokenRemaining: selectors.getAuctionStatus(state).tokenRemaining,
+    availableCoin: selectors.getCoinBalanceWei(state),
     currentPrice: selectors.getAuctionStatus(state).currentPrice,
-    availableETH: selectors.getEthBalanceWei(state),
-    ETHprice: selectors.getEthRate(state),
+    coinPrice: selectors.getCoinRate(state),
     config: selectors.getConfig(state),
     from: selectors.getActiveAddress(state)
   })

@@ -10,9 +10,9 @@ const format = {
 BigNumber.config({ FORMAT: format })
 
 /**
- * Given an ETH amount, the current auction price and remaining tokens, returns
- * the expected MET amount, the ETH spent, if the purchase depletes the auction
- * and a possible ETH return for that purchase.
+ * Given a coin amount, the current auction price and remaining tokens, returns
+ * the expected MET amount, the coin spent, if the purchase depletes the auction
+ * and a possible coin return for that purchase.
  *
  * @param {Object} params - Params required for the estimate
  * @param {string} params.client - The client object
@@ -43,7 +43,7 @@ export function getPurchaseEstimate({ client, amount, rate, remaining }) {
     ? client.toBN(expectedMETamount).gt(client.toBN(remaining))
     : null
 
-  const usedETHAmount =
+  const usedCoinAmount =
     isValidAmount && excedes
       ? new BigNumber(remaining)
           .multipliedBy(new BigNumber(rate))
@@ -52,10 +52,10 @@ export function getPurchaseEstimate({ client, amount, rate, remaining }) {
           .toString(10)
       : null
 
-  const excessETHAmount =
+  const excessCoinAmount =
     isValidAmount && excedes
-      ? weiAmount.minus(usedETHAmount).toString(10)
+      ? weiAmount.minus(usedCoinAmount).toString(10)
       : null
 
-  return { expectedMETamount, excedes, usedETHAmount, excessETHAmount }
+  return { expectedMETamount, excedes, usedCoinAmount, excessCoinAmount }
 }

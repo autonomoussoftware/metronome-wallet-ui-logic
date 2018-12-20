@@ -1,8 +1,9 @@
-import { handleActions } from 'redux-actions'
+import { handleActions, combineActions } from 'redux-actions'
 
 const initialState = {
   gasPrice: null,
-  height: -1
+  height: -1,
+  rate: null
 }
 
 const reducer = handleActions(
@@ -15,11 +16,24 @@ const reducer = handleActions(
               payload.blockchain.gasPrice || payload.config.DEFAULT_GAS_PRICE,
             height: payload.blockchain.height
           }
-        : state,
+        : {
+            ...state,
+            gasPrice: payload.config.DEFAULT_GAS_PRICE
+          },
 
-    'eth-block': (state, { payload }) => ({
+    // TODO: remove eth action
+    [combineActions('coin-block', 'eth-block')]: (state, { payload }) => ({
       ...state,
       height: payload.number
+    }),
+
+    // TODO: remove eth action
+    [combineActions('coin-price-updated', 'eth-price-updated')]: (
+      state,
+      { payload }
+    ) => ({
+      ...state,
+      rate: payload
     }),
 
     'gas-price-updated': (state, { payload }) => ({
