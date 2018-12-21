@@ -9,7 +9,6 @@ export { getAmountFieldsProps } from './getAmountFieldsProps'
 export { getPurchaseEstimate } from './getPurchaseEstimate'
 export { getConversionRate } from './getConversionRate'
 export { mnemonicWords } from './mnemonicWords'
-export { messageParser } from './messageParser'
 export { syncAmounts } from './syncAmounts'
 
 export function hasFunds(value) {
