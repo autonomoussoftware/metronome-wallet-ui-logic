@@ -1,4 +1,5 @@
 import { handleActions, combineActions } from 'redux-actions'
+import get from 'lodash/get'
 
 const initialState = {
   gasPrice: null,
@@ -8,18 +9,11 @@ const initialState = {
 
 const reducer = handleActions(
   {
-    'initial-state-received': (state, { payload }) =>
-      payload.blockchain
-        ? {
-            ...state,
-            gasPrice:
-              payload.blockchain.gasPrice || payload.config.DEFAULT_GAS_PRICE,
-            height: payload.blockchain.height
-          }
-        : {
-            ...state,
-            gasPrice: payload.config.DEFAULT_GAS_PRICE
-          },
+    'initial-state-received': (state, { payload }) => ({
+      ...state,
+      ...get(payload, 'meta', {}),
+      gasPrice: get(payload, 'meta.gasPrice', payload.config.defaultGasPrice)
+    }),
 
     // TODO: remove eth action
     [combineActions('coin-block', 'eth-block')]: (state, { payload }) => ({

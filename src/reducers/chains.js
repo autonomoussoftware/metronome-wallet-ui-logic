@@ -1,10 +1,11 @@
 import { combineReducers } from 'redux'
+import get from 'lodash/get'
+
 import converter from './converter'
 import wallets from './wallets'
 import auction from './auction'
 import port from './port'
 import meta from './meta'
-import get from 'lodash/get'
 
 const initialState = {
   active: null,
@@ -45,7 +46,13 @@ export default function(state = initialState, action) {
         byId: enabledChains.reduce((byId, chainName) => {
           byId[chainName] = createChainReducer(chainName)(
             state.byId[chainName],
-            action
+            {
+              ...action,
+              payload: {
+                ...action.payload.chains.byId[chainName],
+                config: action.payload.config.chains[chainName]
+              }
+            }
           )
           return byId
         }, {})

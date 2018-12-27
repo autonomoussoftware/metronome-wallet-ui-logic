@@ -8,9 +8,9 @@ const withTxRowState = WrappedComponent => {
   class Container extends React.Component {
     static propTypes = {
       confirmations: PropTypes.number.isRequired,
-      config: PropTypes.shape({
-        MET_TOKEN_ADDR: PropTypes.string.isRequired,
-        CONVERTER_ADDR: PropTypes.string.isRequired
+      activeChainConfig: PropTypes.shape({
+        converterAddress: PropTypes.string.isRequired,
+        metTokenAddress: PropTypes.string.isRequired
       }).isRequired,
       tx: PropTypes.shape({
         mtnBoughtInAuction: PropTypes.string,
@@ -23,12 +23,12 @@ const withTxRowState = WrappedComponent => {
       WrappedComponent.name})`
 
     render() {
-      const { tx, confirmations, config } = this.props
+      const { tx, confirmations, activeChainConfig } = this.props
 
       return (
         <WrappedComponent
-          MET_TOKEN_ADDR={config.MET_TOKEN_ADDR}
-          CONVERTER_ADDR={config.CONVERTER_ADDR}
+          converterAddress={activeChainConfig.converterAddress}
+          metTokenAddress={activeChainConfig.metTokenAddress}
           isPending={utils.isPending(tx, confirmations)}
           isFailed={utils.isFailed(tx, confirmations)}
           {...this.props}
@@ -40,8 +40,8 @@ const withTxRowState = WrappedComponent => {
 
   const mapStateToProps = (state, props) => ({
     // avoid unnecessary re-renders once transaction is confirmed
-    confirmations: Math.min(6, selectors.getTxConfirmations(state, props)),
-    config: selectors.getConfig(state)
+    activeChainConfig: selectors.getActiveChainConfig(state),
+    confirmations: Math.min(6, selectors.getTxConfirmations(state, props))
   })
 
   return connect(mapStateToProps)(Container)

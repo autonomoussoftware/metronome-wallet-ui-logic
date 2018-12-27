@@ -9,11 +9,14 @@ export const getChains = state => state.chains
 // Returns the id of the active chain
 export const getActiveChain = createSelector(getChains, chains => chains.active)
 
+// Returns a map of enabled chains by id
+export const getChainsById = createSelector(getChains, chains => chains.byId)
+
 // Returns all the data related to the active chain
 export const getActiveChainData = createSelector(
   getActiveChain,
-  getChains,
-  (active, chains) => chains.byId[active]
+  getChainsById,
+  (active, chainsById) => chainsById[active]
 )
 
 // Returns the client (useful for accessing helpers inside other selectors)
@@ -21,6 +24,13 @@ export const getClient = (props, client) => client
 
 // Returns the "config" state branch
 export const getConfig = state => state.config
+
+// Returns the chain-specific config of the active chain
+export const getActiveChainConfig = createSelector(
+  getActiveChain,
+  getConfig,
+  (activeChain, config) => config.chains[activeChain]
+)
 
 // Returns the "connectivity" state branch
 export const getConnectivity = state => state.connectivity
@@ -38,13 +48,13 @@ export const getIsLoggedIn = state => state.session.isLoggedIn
 // Possible improvements: expire session after timeout
 export const isSessionActive = getIsLoggedIn
 
-// Returns all user wallets
+// Returns all user wallets on active chain
 const getWalletsById = createSelector(
   getActiveChainData,
   chainData => chainData.wallets.byId
 )
 
-// Returns thw active wallet id
+// Returns the active wallet id on active chain
 const getActiveWalletId = createSelector(
   getActiveChainData,
   chainData => chainData.wallets.active
@@ -89,15 +99,25 @@ export const getActiveWalletCoinBalance = createSelector(
 // Returns the MET balance of the active address in wei
 export const getActiveWalletMetBalance = createSelector(
   getActiveAddressData,
-  getConfig,
-  (activeAddressData, config) =>
-    get(activeAddressData, ['token', config.MET_TOKEN_ADDR, 'balance'], null)
+  getActiveChainConfig,
+  (activeAddressData, activeChainConfig) =>
+    get(
+      activeAddressData,
+      ['token', activeChainConfig.metTokenAddress, 'balance'],
+      null
+    )
 )
 
 // Returns the current coin rate
 export const getCoinRate = createSelector(
   getActiveChainData,
   chainData => chainData.meta.rate
+)
+
+// Returns the current chain symbol (to display next to amounts)
+export const getCoinSymbol = createSelector(
+  getActiveChainConfig,
+  activeChainConfig => activeChainConfig.symbol
 )
 
 // Returns the current coin balance of the active address in wei
@@ -200,9 +220,9 @@ export const getBlockHeight = createSelector(
 
 // Returns the active chain current gas price
 export const getChainGasPrice = createSelector(
+  getActiveChainConfig,
   getChainMeta,
-  getConfig,
-  (chainMeta, config) => chainMeta.gasPrice || config.DEFAULT_GAS_PRICE
+  (chainConfig, chainMeta) => chainMeta.gasPrice || chainConfig.defaultGasPrice
 )
 
 // Returns the amount of confirmations for a given transaction
@@ -298,5 +318,41 @@ export const convertFeatureStatus = createSelector(
   getActiveWalletCoinBalance,
   getIsOnline,
   (coinBalance, isOnline) =>
-    !isOnline ? 'offline' : !utils.hasFunds(coinBalance) ? 'no-eth' : 'ok'
+    !isOnline ? 'offline' : !utils.hasFunds(coinBalance) ? 'no-coin' : 'ok'
+)
+
+// Returns the status of the "Port" feature on the active chain
+export const portFeatureStatus = convertFeatureStatus
+
+export const getChainsWithBalances = createSelector(
+  getActiveChain,
+  getChainsById,
+  getConfig,
+  (activeChain, chainsById, config) =>
+    Object.keys(chainsById).map(chainName => {
+      const chainConfig = config.chains[chainName]
+      const walletsData = chainsById[chainName].wallets
+      const activeWallet = walletsData.active
+      const activeAddress = Object.keys(
+        walletsData.byId[activeWallet].addresses
+      )[0]
+      return {
+        displayName: chainConfig.displayName,
+        balance: get(
+          walletsData,
+          [
+            'byId',
+            activeWallet,
+            'addresses',
+            activeAddress,
+            'token',
+            chainConfig.metTokenAddress,
+            'balance'
+          ],
+          null
+        ),
+        symbol: chainConfig.symbol,
+        id: chainName
+      }
+    })
 )

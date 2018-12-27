@@ -1,6 +1,7 @@
 import { handleActions } from 'redux-actions'
 import mergeWith from 'lodash/mergeWith'
 import unionBy from 'lodash/unionBy'
+import get from 'lodash/get'
 
 const initialState = {
   isScanningTx: false,
@@ -11,14 +12,11 @@ const initialState = {
 
 const reducer = handleActions(
   {
-    'initial-state-received': (state, { payload }) =>
-      payload.wallets
-        ? {
-            ...state,
-            ...payload.wallets,
-            isScanningTx: state.isScanningTx
-          }
-        : state,
+    'initial-state-received': (state, { payload }) => ({
+      ...state,
+      ...get(payload, 'wallets', {}),
+      isScanningTx: state.isScanningTx
+    }),
 
     'create-wallet': (state, { payload }) => ({
       ...state,

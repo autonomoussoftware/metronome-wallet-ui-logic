@@ -6,7 +6,8 @@ const mapStateToProps = (state, { client }) => ({
   coinBalanceUSD: selectors.getCoinBalanceUSD(state, client),
   coinBalanceWei: selectors.getCoinBalanceWei(state),
   metBalanceWei: selectors.getMetBalanceWei(state),
-  metBalanceUSD: selectors.getMetBalanceUSD(state)
+  metBalanceUSD: selectors.getMetBalanceUSD(state),
+  coinSymbol: selectors.getCoinSymbol(state)
 })
 
 export default Component => withClient(connect(mapStateToProps)(Component))

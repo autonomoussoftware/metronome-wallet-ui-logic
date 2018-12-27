@@ -1,4 +1,4 @@
-import { getInitialState } from './withGasEditorState'
+// import { getInitialState } from './withGasEditorState'
 import * as validators from '../validators'
 import * as selectors from '../selectors'
 import { withClient } from './clientContext'
@@ -11,20 +11,12 @@ import React from 'react'
 const withPortFormState = WrappedComponent => {
   class Container extends React.Component {
     static propTypes = {
-      tokenRemaining: PropTypes.string.isRequired,
-      availableCoin: PropTypes.string.isRequired,
-      currentPrice: PropTypes.string.isRequired,
-      coinPrice: PropTypes.number.isRequired,
+      availableMet: PropTypes.string.isRequired,
       client: PropTypes.shape({
-        getAuctionGasLimit: PropTypes.func.isRequired,
-        buyMetronome: PropTypes.func.isRequired,
+        getPortGasLimit: PropTypes.func.isRequired,
+        portMetronome: PropTypes.func.isRequired,
         fromWei: PropTypes.func.isRequired,
-        toWei: PropTypes.func.isRequired,
-        toBN: PropTypes.func.isRequired
-      }).isRequired,
-      config: PropTypes.shape({
-        MET_DEFAULT_GAS_LIMIT: PropTypes.string.isRequired,
-        DEFAULT_GAS_PRICE: PropTypes.string.isRequired
+        toWei: PropTypes.func.isRequired
       }).isRequired,
       from: PropTypes.string.isRequired
     }
@@ -33,10 +25,8 @@ const withPortFormState = WrappedComponent => {
       WrappedComponent.name})`
 
     initialState = {
-      gasEstimateError: false,
-      coinAmount: null,
-      usdAmount: null,
-      ...getInitialState('MET', this.props.client, this.props.config),
+      metAmount: null,
+      // ...getInitialState('MET', this.props.client, this.props.config),
       errors: {}
     }
 
@@ -45,27 +35,27 @@ const withPortFormState = WrappedComponent => {
     resetForm = () => this.setState(this.initialState)
 
     onInputChange = ({ id, value }) => {
-      const { coinPrice, client } = this.props
+      // const { coinPrice, client } = this.props
       this.setState(state => ({
         ...state,
-        ...utils.syncAmounts({ state, coinPrice, id, value, client }),
+        // ...utils.syncAmounts({ state, coinPrice, id, value, client }),
         gasEstimateError: id === 'gasLimit' ? false : state.gasEstimateError,
         errors: { ...state.errors, [id]: null },
         [id]: utils.sanitizeInput(value)
       }))
 
       // Estimate gas limit again if parameters changed
-      if (['coinAmount'].includes(id)) this.getGasEstimate()
+      if (['metAmount'].includes(id)) this.getGasEstimate()
     }
 
     getGasEstimate = debounce(() => {
-      const { coinAmount } = this.state
+      const { metAmount } = this.state
 
-      if (!utils.isWeiable(this.props.client, coinAmount)) return
+      if (!utils.isWeiable(this.props.client, metAmount)) return
 
       this.props.client
-        .getAuctionGasLimit({
-          value: this.props.client.toWei(utils.sanitize(coinAmount)),
+        .getPortGasLimit({
+          value: this.props.client.toWei(utils.sanitize(metAmount)),
           from: this.props.from
         })
         .then(({ gasLimit }) => {
@@ -78,20 +68,20 @@ const withPortFormState = WrappedComponent => {
     }, 500)
 
     onSubmit = password =>
-      this.props.client.buyMetronome({
+      this.props.client.portMetronome({
         gasPrice: this.props.client.toWei(this.state.gasPrice, 'gwei'),
         gas: this.state.gasLimit,
         password,
-        value: this.props.client.toWei(utils.sanitize(this.state.coinAmount)),
+        value: this.props.client.toWei(utils.sanitize(this.state.metAmount)),
         from: this.props.from
       })
 
     validate = () => {
-      const { coinAmount, gasPrice, gasLimit } = this.state
+      const { metAmount, gasPrice, gasLimit } = this.state
       const { client } = this.props
-      const max = client.fromWei(this.props.availableCoin)
+      const max = client.fromWei(this.props.availableMet)
       const errors = {
-        ...validators.validateCoinAmount(client, coinAmount, max),
+        ...validators.validateCoinAmount(client, metAmount, max),
         ...validators.validateGasPrice(client, gasPrice),
         ...validators.validateGasLimit(client, gasLimit)
       }
@@ -101,23 +91,11 @@ const withPortFormState = WrappedComponent => {
     }
 
     onMaxClick = () => {
-      const coinAmount = this.props.client.fromWei(this.props.availableCoin)
-      this.onInputChange({ id: 'coinAmount', value: coinAmount })
+      const metAmount = this.props.client.fromWei(this.props.availableMet)
+      this.onInputChange({ id: 'metAmount', value: metAmount })
     }
 
     render() {
-      const amountFieldsProps = utils.getAmountFieldsProps({
-        coinAmount: this.state.coinAmount,
-        usdAmount: this.state.usdAmount
-      })
-
-      const expected = utils.getPurchaseEstimate({
-        remaining: this.props.tokenRemaining,
-        amount: this.state.coinAmount,
-        client: this.props.client,
-        rate: this.props.currentPrice
-      })
-
       return (
         <WrappedComponent
           onInputChange={this.onInputChange}
@@ -126,11 +104,8 @@ const withPortFormState = WrappedComponent => {
           onSubmit={this.onSubmit}
           {...this.props}
           {...this.state}
-          {...expected}
-          coinPlaceholder={amountFieldsProps.coinPlaceholder}
-          usdPlaceholder={amountFieldsProps.usdPlaceholder}
-          coinAmount={amountFieldsProps.coinAmount}
-          usdAmount={amountFieldsProps.usdAmount}
+          // metPlaceholder={amountFieldsProps.metPlaceholder}
+          // metAmount={amountFieldsProps.metAmount}
           validate={this.validate}
         />
       )
@@ -138,10 +113,7 @@ const withPortFormState = WrappedComponent => {
   }
 
   const mapStateToProps = state => ({
-    tokenRemaining: selectors.getAuctionStatus(state).tokenRemaining,
-    availableCoin: selectors.getCoinBalanceWei(state),
-    currentPrice: selectors.getAuctionStatus(state).currentPrice,
-    coinPrice: selectors.getCoinRate(state),
+    availableMet: selectors.getMetBalanceWei(state),
     config: selectors.getConfig(state),
     from: selectors.getActiveAddress(state)
   })
