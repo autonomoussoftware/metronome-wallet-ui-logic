@@ -365,9 +365,10 @@ export const getChainsReadyStatus = createSelector(
       const chainConfig = config.chains[chainName]
       const walletsData = chainData.wallets
       const activeWallet = walletsData.active
-      const activeAddress = Object.keys(
-        walletsData.byId[activeWallet].addresses
-      )[0]
+      const activeAddress =
+        Object.keys(
+          get(walletsData, ['byId', activeWallet, 'addresses'], {})
+        )[0] || null
       const chainMeta = chainData.meta
       return {
         hasCoinBalance:
