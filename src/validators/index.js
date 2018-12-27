@@ -113,7 +113,7 @@ export function validatePasswordCreation(
   if (!password) {
     errors.password = 'Password is required'
   } else if (
-    client.getStringEntropy(password) < config.REQUIRED_PASSWORD_ENTROPY
+    client.getStringEntropy(password) < config.requiredPasswordEntropy
   ) {
     errors.password = 'Password is not strong enough'
   }

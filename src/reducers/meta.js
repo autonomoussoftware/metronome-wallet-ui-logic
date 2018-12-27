@@ -27,7 +27,7 @@ const reducer = handleActions(
       { payload }
     ) => ({
       ...state,
-      rate: payload
+      rate: payload.price
     }),
 
     'gas-price-updated': (state, { payload }) => ({

@@ -49,7 +49,7 @@ export default function(state = initialState, action) {
             {
               ...action,
               payload: {
-                ...action.payload.chains.byId[chainName],
+                ...get(action, ['payload', 'chains', 'byId', chainName], {}),
                 config: action.payload.config.chains[chainName]
               }
             }
