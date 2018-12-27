@@ -1,5 +1,6 @@
 import { createSelector } from 'reselect'
 import * as utils from '../utils'
+import mapValues from 'lodash/mapValues'
 import sortBy from 'lodash/sortBy'
 import get from 'lodash/get'
 
@@ -325,10 +326,9 @@ export const convertFeatureStatus = createSelector(
 export const portFeatureStatus = convertFeatureStatus
 
 export const getChainsWithBalances = createSelector(
-  getActiveChain,
   getChainsById,
   getConfig,
-  (activeChain, chainsById, config) =>
+  (chainsById, config) =>
     Object.keys(chainsById).map(chainName => {
       const chainConfig = config.chains[chainName]
       const walletsData = chainsById[chainName].wallets
@@ -353,6 +353,47 @@ export const getChainsWithBalances = createSelector(
         ),
         symbol: chainConfig.symbol,
         id: chainName
+      }
+    })
+)
+
+export const getChainsReadyStatus = createSelector(
+  getChainsById,
+  getConfig,
+  (chainsById, config) =>
+    mapValues(chainsById, (chainData, chainName) => {
+      const chainConfig = config.chains[chainName]
+      const walletsData = chainData.wallets
+      const activeWallet = walletsData.active
+      const activeAddress = Object.keys(
+        walletsData.byId[activeWallet].addresses
+      )[0]
+      const chainMeta = chainData.meta
+      return {
+        hasCoinBalance:
+          get(
+            walletsData,
+            ['byId', activeWallet, 'addresses', activeAddress, 'balance'],
+            null
+          ) !== null,
+        hasMetBalance:
+          get(
+            walletsData,
+            [
+              'byId',
+              activeWallet,
+              'addresses',
+              activeAddress,
+              'token',
+              chainConfig.metTokenAddress,
+              'balance'
+            ],
+            null
+          ) !== null,
+        hasBlockHeight: chainMeta.height > -1,
+        hasCoinRate: chainMeta.rate !== null,
+        displayName: chainConfig.displayName,
+        symbol: chainConfig.symbol
       }
     })
 )
