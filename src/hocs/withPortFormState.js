@@ -25,8 +25,8 @@ const withPortFormState = WrappedComponent => {
       WrappedComponent.name})`
 
     initialState = {
+      useCustomGas: false,
       metAmount: null,
-      // ...getInitialState('MET', this.props.client, this.props.config),
       errors: {}
     }
 

@@ -322,8 +322,26 @@ export const convertFeatureStatus = createSelector(
     !isOnline ? 'offline' : !utils.hasFunds(coinBalance) ? 'no-coin' : 'ok'
 )
 
+// Returns the "port" state branch for the active chain
+export const getPort = createSelector(
+  getActiveChainData,
+  activeChain => activeChain.port
+)
+
 // Returns the status of the "Port" feature on the active chain
-export const portFeatureStatus = convertFeatureStatus
+export const portFeatureStatus = () => 'ok'
+
+// Returns an array of ongoing imports with not enough validations yet
+export const getPendingImports = createSelector(
+  getPort,
+  port => port.pendingImports
+)
+
+// Returns an array of exports that lack an import operation
+export const getFailedImports = createSelector(
+  getPort,
+  port => port.failedImports
+)
 
 export const getChainsWithBalances = createSelector(
   getChainsById,

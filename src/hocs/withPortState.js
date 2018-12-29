@@ -1,17 +1,24 @@
-import * as selectors from '../selectors'
 import { connect } from 'react-redux'
 import PropTypes from 'prop-types'
 import React from 'react'
+
+import { withClient } from './clientContext'
+import * as selectors from '../selectors'
 
 const withPortState = WrappedComponent => {
   class Container extends React.Component {
     static propTypes = {
       portFeatureStatus: PropTypes.oneOf(['offline', 'no-coin', 'ok'])
-        .isRequired
+        .isRequired,
+      client: PropTypes.shape({
+        retryImport: PropTypes.func.isRequired
+      }).isRequired
     }
 
     static displayName = `withPortState(${WrappedComponent.displayName ||
       WrappedComponent.name})`
+
+    onRetry = hash => this.props.client.retryImport(hash)
 
     render() {
       const { portFeatureStatus } = this.props
@@ -27,6 +34,7 @@ const withPortState = WrappedComponent => {
         <WrappedComponent
           portDisabledReason={portDisabledReason}
           portDisabled={portFeatureStatus !== 'ok'}
+          onRetry={this.onRetry}
           {...this.props}
         />
       )
@@ -34,10 +42,12 @@ const withPortState = WrappedComponent => {
   }
 
   const mapStateToProps = state => ({
-    portFeatureStatus: selectors.portFeatureStatus(state)
+    portFeatureStatus: selectors.portFeatureStatus(state),
+    pendingImports: selectors.getPendingImports(state),
+    failedImports: selectors.getFailedImports(state)
   })
 
-  return connect(mapStateToProps)(Container)
+  return withClient(connect(mapStateToProps)(Container))
 }
 
 export default withPortState
