@@ -1,20 +1,11 @@
-import { connect } from 'react-redux'
 import PropTypes from 'prop-types'
 import React from 'react'
 
 import { withClient } from './clientContext'
-import * as selectors from '../selectors'
-
-export const getInitialState = (currency, client, config) => ({
-  useCustomGas: false,
-  gasPrice: client.fromWei(config.DEFAULT_GAS_PRICE, 'gwei'),
-  gasLimit: config[`${currency}_DEFAULT_GAS_LIMIT`]
-})
 
 const withGasEditorState = WrappedComponent => {
   class Container extends React.Component {
     static propTypes = {
-      chainGasPrice: PropTypes.string.isRequired,
       onInputChange: PropTypes.func.isRequired,
       useCustomGas: PropTypes.bool.isRequired,
       gasPrice: PropTypes.string.isRequired,
@@ -40,12 +31,6 @@ const withGasEditorState = WrappedComponent => {
 
       // Avoid getting current price if using custom price
       if (this.props.useCustomGas) return
-
-      // Start using the the cached gas price in store
-      this.props.onInputChange({
-        id: 'gasPrice',
-        value: this.props.client.fromWei(this.props.chainGasPrice, 'gwei')
-      })
 
       this.props.client
         .getGasPrice()
@@ -84,11 +69,7 @@ const withGasEditorState = WrappedComponent => {
     }
   }
 
-  const mapStateToProps = state => ({
-    chainGasPrice: selectors.getChainGasPrice(state)
-  })
-
-  return withClient(connect(mapStateToProps)(Container))
+  return withClient(Container)
 }
 
 export default withGasEditorState

@@ -1,4 +1,3 @@
-import { getInitialState } from './withGasEditorState'
 import * as validators from '../validators'
 import { withClient } from './clientContext'
 import * as selectors from '../selectors'
@@ -11,6 +10,8 @@ import React from 'react'
 const withSendCoinFormState = WrappedComponent => {
   class Container extends React.Component {
     static propTypes = {
+      coinDefaultGasLimit: PropTypes.string.isRequired,
+      chainGasPrice: PropTypes.string.isRequired,
       availableCoin: PropTypes.string.isRequired,
       coinPrice: PropTypes.number.isRequired,
       client: PropTypes.shape({
@@ -20,10 +21,6 @@ const withSendCoinFormState = WrappedComponent => {
         fromWei: PropTypes.func.isRequired,
         toWei: PropTypes.func.isRequired
       }).isRequired,
-      config: PropTypes.shape({
-        MET_DEFAULT_GAS_LIMIT: PropTypes.string.isRequired,
-        DEFAULT_GAS_PRICE: PropTypes.string.isRequired
-      }).isRequired,
       from: PropTypes.string.isRequired
     }
 
@@ -31,11 +28,13 @@ const withSendCoinFormState = WrappedComponent => {
       WrappedComponent.name})`
 
     initialState = {
-      ...getInitialState('coin', this.props.client, this.props.config),
       gasEstimateError: false,
-      toAddress: null,
+      useCustomGas: false,
       coinAmount: null,
       usdAmount: null,
+      toAddress: null,
+      gasPrice: this.props.client.fromWei(this.props.chainGasPrice, 'gwei'),
+      gasLimit: this.props.coinDefaultGasLimit,
       errors: {}
     }
 
@@ -137,9 +136,11 @@ const withSendCoinFormState = WrappedComponent => {
   }
 
   const mapStateToProps = state => ({
+    coinDefaultGasLimit: selectors.getActiveChainConfig(state)
+      .coinDefaultGasLimit,
+    chainGasPrice: selectors.getChainGasPrice(state),
     availableCoin: selectors.getCoinBalanceWei(state),
     coinPrice: selectors.getCoinRate(state),
-    config: selectors.getConfig(state),
     from: selectors.getActiveAddress(state)
   })
 

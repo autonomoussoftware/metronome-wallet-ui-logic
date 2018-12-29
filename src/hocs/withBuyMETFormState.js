@@ -1,4 +1,3 @@
-import { getInitialState } from './withGasEditorState'
 import * as validators from '../validators'
 import * as selectors from '../selectors'
 import { withClient } from './clientContext'
@@ -11,8 +10,10 @@ import React from 'react'
 const withBuyMETFormState = WrappedComponent => {
   class Container extends React.Component {
     static propTypes = {
+      metDefaultGasLimit: PropTypes.string.isRequired,
       tokenRemaining: PropTypes.string.isRequired,
       availableCoin: PropTypes.string.isRequired,
+      chainGasPrice: PropTypes.string.isRequired,
       currentPrice: PropTypes.string.isRequired,
       coinPrice: PropTypes.number.isRequired,
       client: PropTypes.shape({
@@ -22,10 +23,6 @@ const withBuyMETFormState = WrappedComponent => {
         toWei: PropTypes.func.isRequired,
         toBN: PropTypes.func.isRequired
       }).isRequired,
-      config: PropTypes.shape({
-        MET_DEFAULT_GAS_LIMIT: PropTypes.string.isRequired,
-        DEFAULT_GAS_PRICE: PropTypes.string.isRequired
-      }).isRequired,
       from: PropTypes.string.isRequired
     }
 
@@ -34,9 +31,11 @@ const withBuyMETFormState = WrappedComponent => {
 
     initialState = {
       gasEstimateError: false,
+      useCustomGas: false,
       coinAmount: null,
       usdAmount: null,
-      ...getInitialState('MET', this.props.client, this.props.config),
+      gasPrice: this.props.client.fromWei(this.props.chainGasPrice, 'gwei'),
+      gasLimit: this.props.metDefaultGasLimit,
       errors: {}
     }
 
@@ -138,11 +137,13 @@ const withBuyMETFormState = WrappedComponent => {
   }
 
   const mapStateToProps = state => ({
+    metDefaultGasLimit: selectors.getActiveChainConfig(state)
+      .metDefaultGasLimit,
     tokenRemaining: selectors.getAuctionStatus(state).tokenRemaining,
     availableCoin: selectors.getCoinBalanceWei(state),
+    chainGasPrice: selectors.getChainGasPrice(state),
     currentPrice: selectors.getAuctionStatus(state).currentPrice,
     coinPrice: selectors.getCoinRate(state),
-    config: selectors.getConfig(state),
     from: selectors.getActiveAddress(state)
   })
 

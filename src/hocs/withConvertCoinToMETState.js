@@ -3,7 +3,6 @@ import PropTypes from 'prop-types'
 import debounce from 'lodash/debounce'
 import React from 'react'
 
-import { getInitialState } from './withGasEditorState'
 import * as validators from '../validators'
 import * as selectors from '../selectors'
 import { withClient } from './clientContext'
@@ -12,8 +11,10 @@ import * as utils from '../utils'
 const withConvertCoinToMETState = WrappedComponent => {
   class Container extends React.Component {
     static propTypes = {
+      coinDefaultGasLimit: PropTypes.string.isRequired,
       converterPrice: PropTypes.string.isRequired,
       availableCoin: PropTypes.string.isRequired,
+      chainGasPrice: PropTypes.string.isRequired,
       coinPrice: PropTypes.number.isRequired,
       client: PropTypes.shape({
         getConvertCoinEstimate: PropTypes.func.isRequired,
@@ -22,10 +23,6 @@ const withConvertCoinToMETState = WrappedComponent => {
         fromWei: PropTypes.func.isRequired,
         toWei: PropTypes.func.isRequired
       }).isRequired,
-      config: PropTypes.shape({
-        MET_DEFAULT_GAS_LIMIT: PropTypes.string.isRequired,
-        DEFAULT_GAS_PRICE: PropTypes.string.isRequired
-      }).isRequired,
       from: PropTypes.string.isRequired
     }
 
@@ -33,12 +30,14 @@ const withConvertCoinToMETState = WrappedComponent => {
       WrappedComponent.name})`
 
     initialState = {
-      ...getInitialState('MET', this.props.client, this.props.config),
       gasEstimateError: false,
       estimateError: null,
+      useCustomGas: false,
       useMinimum: true,
       coinAmount: null,
       usdAmount: null,
+      gasPrice: this.props.client.fromWei(this.props.chainGasPrice, 'gwei'),
+      gasLimit: this.props.coinDefaultGasLimit,
       estimate: null,
       errors: {},
       rate: null
@@ -198,10 +197,12 @@ const withConvertCoinToMETState = WrappedComponent => {
   }
 
   const mapStateToProps = state => ({
+    cointDefaultGasLimit: selectors.getActiveChainConfig(state)
+      .cointDefaultGasLimit,
     converterPrice: selectors.getConverterPrice(state),
     availableCoin: selectors.getCoinBalanceWei(state),
+    chainGasPrice: selectors.getChainGasPrice(state),
     coinPrice: selectors.getCoinRate(state),
-    config: selectors.getConfig(state),
     from: selectors.getActiveAddress(state)
   })
 

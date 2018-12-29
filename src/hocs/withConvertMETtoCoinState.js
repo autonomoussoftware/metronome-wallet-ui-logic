@@ -1,4 +1,3 @@
-import { getInitialState } from './withGasEditorState'
 import * as validators from '../validators'
 import * as selectors from '../selectors'
 import { withClient } from './clientContext'
@@ -11,7 +10,9 @@ import React from 'react'
 const withConvertMETtoCoinState = WrappedComponent => {
   class Container extends React.Component {
     static propTypes = {
+      metDefaultGasLimit: PropTypes.string.isRequired,
       converterPrice: PropTypes.string.isRequired,
+      chainGasPrice: PropTypes.string.isRequired,
       availableMET: PropTypes.string.isRequired,
       client: PropTypes.shape({
         getConvertMetEstimate: PropTypes.func.isRequired,
@@ -20,10 +21,6 @@ const withConvertMETtoCoinState = WrappedComponent => {
         fromWei: PropTypes.func.isRequired,
         toWei: PropTypes.func.isRequired
       }).isRequired,
-      config: PropTypes.shape({
-        MET_DEFAULT_GAS_LIMIT: PropTypes.string.isRequired,
-        DEFAULT_GAS_PRICE: PropTypes.string.isRequired
-      }).isRequired,
       from: PropTypes.string.isRequired
     }
 
@@ -31,11 +28,13 @@ const withConvertMETtoCoinState = WrappedComponent => {
       WrappedComponent.name})`
 
     initialState = {
-      ...getInitialState('MET', this.props.client, this.props.config),
       gasEstimateError: false,
       estimateError: null,
+      useCustomGas: false,
       useMinimum: true,
       metAmount: null,
+      gasPrice: this.props.client.fromWei(this.props.chainGasPrice, 'gwei'),
+      gasLimit: this.props.metDefaultGasLimit,
       estimate: null,
       errors: {},
       rate: null
@@ -184,9 +183,11 @@ const withConvertMETtoCoinState = WrappedComponent => {
   }
 
   const mapStateToProps = state => ({
+    metDefaultGasLimit: selectors.getActiveChainConfig(state)
+      .metDefaultGasLimit,
     converterPrice: selectors.getConverterPrice(state),
+    chainGasPrice: selectors.getChainGasPrice(state),
     availableMET: selectors.getMetBalanceWei(state),
-    config: selectors.getConfig(state),
     from: selectors.getActiveAddress(state)
   })
 

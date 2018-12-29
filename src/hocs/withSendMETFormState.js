@@ -1,4 +1,3 @@
-import { getInitialState } from './withGasEditorState'
 import * as validators from '../validators'
 import { withClient } from './clientContext'
 import * as selectors from '../selectors'
@@ -11,6 +10,9 @@ import React from 'react'
 const withSendMETFormState = WrappedComponent => {
   class Container extends React.Component {
     static propTypes = {
+      metDefaultGasLimit: PropTypes.string.isRequired,
+      metTokenAddress: PropTypes.string.isRequired,
+      chainGasPrice: PropTypes.string.isRequired,
       availableMET: PropTypes.string.isRequired,
       client: PropTypes.shape({
         getTokensGasLimit: PropTypes.func.isRequired,
@@ -19,11 +21,6 @@ const withSendMETFormState = WrappedComponent => {
         fromWei: PropTypes.func.isRequired,
         toWei: PropTypes.func.isRequired
       }).isRequired,
-      config: PropTypes.shape({
-        MET_DEFAULT_GAS_LIMIT: PropTypes.string.isRequired,
-        DEFAULT_GAS_PRICE: PropTypes.string.isRequired,
-        MET_TOKEN_ADDR: PropTypes.string.isRequired
-      }).isRequired,
       from: PropTypes.string.isRequired
     }
 
@@ -31,10 +28,12 @@ const withSendMETFormState = WrappedComponent => {
       WrappedComponent.name})`
 
     initialState = {
-      ...getInitialState('MET', this.props.client, this.props.config),
       gasEstimateError: false,
+      useCustomGas: false,
       toAddress: null,
       metAmount: null,
+      gasPrice: this.props.client.fromWei(this.props.chainGasPrice, 'gwei'),
+      gasLimit: this.props.metDefaultGasLimit,
       errors: {}
     }
 
@@ -67,7 +66,7 @@ const withSendMETFormState = WrappedComponent => {
       this.props.client
         .getTokensGasLimit({
           value: this.props.client.toWei(utils.sanitize(metAmount)),
-          token: this.props.config.MET_TOKEN_ADDR,
+          token: this.props.metTokenAddress,
           from: this.props.from,
           to: toAddress
         })
@@ -132,8 +131,11 @@ const withSendMETFormState = WrappedComponent => {
   }
 
   const mapStateToProps = state => ({
+    metDefaultGasLimit: selectors.getActiveChainConfig(state)
+      .metDefaultGasLimit,
+    metTokenAddress: selectors.getActiveChainConfig(state).metTokenAddress,
+    chainGasPrice: selectors.getChainGasPrice(state),
     availableMET: selectors.getMetBalanceWei(state),
-    config: selectors.getConfig(state),
     from: selectors.getActiveAddress(state)
   })
 
