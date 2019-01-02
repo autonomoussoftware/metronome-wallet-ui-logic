@@ -32,7 +32,13 @@ const withLoadingState = WrappedComponent => {
     static displayName = `withLoadingState(${WrappedComponent.displayName ||
       WrappedComponent.name})`
 
-    state = this.props.chainsStatus
+    state = mapValues(this.props.chainsStatus, status => ({
+      ...status,
+      hasBlockHeight: false,
+      hasCoinBalance: false,
+      hasMetBalance: false,
+      hasCoinRate: false
+    }))
 
     checkFinished = () => {
       if (every(this.state, every)) {
