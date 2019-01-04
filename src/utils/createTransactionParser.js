@@ -24,9 +24,19 @@ function isReceiveTransaction({ transaction }, tokenData, myAddress) {
   )
 }
 
+function isImportTransaction(rawTx) {
+  return get(rawTx.meta, 'metronome.import', false)
+}
+
+function isExportTransaction(rawTx) {
+  return get(rawTx.meta, 'metronome.export', false)
+}
+
 function getTxType(rawTx, tokenData, myAddress) {
   if (isAuctionTransaction(rawTx)) return 'auction'
   if (isConversionTransaction(rawTx)) return 'converted'
+  if (isImportTransaction(rawTx)) return 'imported'
+  if (isExportTransaction(rawTx)) return 'exported'
   if (isSendTransaction(rawTx, tokenData, myAddress)) return 'sent'
   if (isReceiveTransaction(rawTx, tokenData, myAddress)) return 'received'
   return 'unknown'
@@ -142,6 +152,16 @@ function getBlockNumber(rawTx) {
   return get(rawTx, ['transaction', 'blockNumber'], null)
 }
 
+// TODO: implement!
+function getImportedFrom() {
+  return 'ETC'
+}
+
+// TODO: implement!
+function getExportedTo() {
+  return 'ETH'
+}
+
 export const createTransactionParser = myAddress => rawTx => {
   const tokenData = Object.values(rawTx.meta.tokens || {})[0] || null
   const txType = getTxType(rawTx, tokenData, myAddress)
@@ -155,8 +175,10 @@ export const createTransactionParser = myAddress => rawTx => {
     approvedValue: getApprovedValue(tokenData),
     convertedFrom,
     isProcessing: getIsProcessing(tokenData),
+    importedFrom: getImportedFrom(),
     blockNumber: getBlockNumber(rawTx),
     isApproval: getIsApproval(tokenData),
+    exportedTo: getExportedTo(),
     fromValue: getFromValue(rawTx, tokenData, convertedFrom),
     toValue: getToValue(rawTx, tokenData, convertedFrom),
     gasUsed: getGasUsed(rawTx),
