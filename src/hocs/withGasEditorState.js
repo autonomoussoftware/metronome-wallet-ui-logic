@@ -10,7 +10,6 @@ const withGasEditorState = WrappedComponent => {
       useCustomGas: PropTypes.bool.isRequired,
       gasPrice: PropTypes.string.isRequired,
       gasLimit: PropTypes.string.isRequired,
-      dispatch: PropTypes.func.isRequired,
       errors: PropTypes.shape({
         gasPrice: PropTypes.string,
         gasLimit: PropTypes.string

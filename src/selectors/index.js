@@ -33,6 +33,12 @@ export const getActiveChainConfig = createSelector(
   (activeChain, config) => config.chains[activeChain]
 )
 
+// Returns the active chain display name
+export const getActiveChainDisplayName = createSelector(
+  getActiveChainConfig,
+  ({ displayName }) => displayName
+)
+
 // Returns the "connectivity" state branch
 export const getConnectivity = state => state.connectivity
 
@@ -415,4 +421,15 @@ export const getChainsReadyStatus = createSelector(
         symbol: chainConfig.symbol
       }
     })
+)
+
+// Return an array of { label, value } with available port destinations
+export const getPortDestinations = createSelector(
+  getActiveChain,
+  getConfig,
+  (active, config) =>
+    config.enabledChains.filter(chainId => chainId !== active).map(chainId => ({
+      label: config.chains[chainId].displayName,
+      value: chainId
+    }))
 )
