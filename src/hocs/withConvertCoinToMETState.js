@@ -204,8 +204,8 @@ const withConvertCoinToMETState = WrappedComponent => {
   }
 
   const mapStateToProps = state => ({
-    cointDefaultGasLimit: selectors.getActiveChainConfig(state)
-      .cointDefaultGasLimit,
+    coinDefaultGasLimit: selectors.getActiveChainConfig(state)
+      .coinDefaultGasLimit,
     converterPrice: selectors.getConverterPrice(state),
     availableCoin: selectors.getCoinBalanceWei(state),
     chainGasPrice: selectors.getChainGasPrice(state),
