@@ -375,7 +375,6 @@ export const getChainsWithBalances = createSelector(
           ],
           null
         ),
-        symbol: chainConfig.symbol,
         id: chainName
       }
     })

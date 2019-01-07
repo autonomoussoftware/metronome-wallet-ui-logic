@@ -12,7 +12,6 @@ const withChainSelectorState = WrappedComponent => {
         PropTypes.shape({
           displayName: PropTypes.string.isRequired,
           balance: PropTypes.string.isRequired,
-          symbol: PropTypes.string.isRequired,
           id: PropTypes.string.isRequired
         })
       ).isRequired
