@@ -1,13 +1,16 @@
+import { connect } from 'react-redux'
 import PropTypes from 'prop-types'
 import React from 'react'
 
 import { withClient } from './clientContext'
+import * as selectors from '../selectors'
 
 const withGasEditorState = WrappedComponent => {
   class Container extends React.Component {
     static propTypes = {
       onInputChange: PropTypes.func.isRequired,
       useCustomGas: PropTypes.bool.isRequired,
+      activeChain: PropTypes.string.isRequired,
       gasPrice: PropTypes.string.isRequired,
       gasLimit: PropTypes.string.isRequired,
       errors: PropTypes.shape({
@@ -32,7 +35,9 @@ const withGasEditorState = WrappedComponent => {
       if (this.props.useCustomGas) return
 
       this.props.client
-        .getGasPrice()
+        .getGasPrice({
+          chain: this.props.activeChain
+        })
         .then(this.updateGasPrice)
         .catch(() => {
           if (this._isMounted) this.setState({ priceError: true })
@@ -68,7 +73,11 @@ const withGasEditorState = WrappedComponent => {
     }
   }
 
-  return withClient(Container)
+  const mapStateToProps = state => ({
+    activeChain: selectors.getActiveChain(state)
+  })
+
+  return connect(mapStateToProps)(withClient(Container))
 }
 
 export default withGasEditorState

@@ -14,6 +14,9 @@ const withSendMETFormState = WrappedComponent => {
       metTokenAddress: PropTypes.string.isRequired,
       chainGasPrice: PropTypes.string.isRequired,
       availableMET: PropTypes.string.isRequired,
+      activeChain: PropTypes.string.isRequired,
+      walletId: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+        .isRequired,
       client: PropTypes.shape({
         getTokensGasLimit: PropTypes.func.isRequired,
         isAddress: PropTypes.func.isRequired,
@@ -67,6 +70,7 @@ const withSendMETFormState = WrappedComponent => {
         .getTokensGasLimit({
           value: this.props.client.toWei(utils.sanitize(metAmount)),
           token: this.props.metTokenAddress,
+          chain: this.props.activeChain,
           from: this.props.from,
           to: toAddress
         })
@@ -82,10 +86,12 @@ const withSendMETFormState = WrappedComponent => {
     onSubmit = password =>
       this.props.client.sendMet({
         gasPrice: this.props.client.toWei(this.state.gasPrice, 'gwei'),
-        gas: this.state.gasLimit,
         password,
+        walletId: this.props.walletId,
         value: this.props.client.toWei(utils.sanitize(this.state.metAmount)),
+        chain: this.props.activeChain,
         from: this.props.from,
+        gas: this.state.gasLimit,
         to: this.state.toAddress
       })
 
@@ -136,6 +142,8 @@ const withSendMETFormState = WrappedComponent => {
     metTokenAddress: selectors.getActiveChainConfig(state).metTokenAddress,
     chainGasPrice: selectors.getChainGasPrice(state),
     availableMET: selectors.getMetBalanceWei(state),
+    activeChain: selectors.getActiveChain(state),
+    walletId: selectors.getActiveWalletId(state),
     from: selectors.getActiveAddress(state)
   })
 

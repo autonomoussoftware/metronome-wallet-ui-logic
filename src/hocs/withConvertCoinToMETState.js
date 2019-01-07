@@ -15,7 +15,10 @@ const withConvertCoinToMETState = WrappedComponent => {
       converterPrice: PropTypes.string.isRequired,
       availableCoin: PropTypes.string.isRequired,
       chainGasPrice: PropTypes.string.isRequired,
+      activeChain: PropTypes.string.isRequired,
       coinPrice: PropTypes.number.isRequired,
+      walletId: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+        .isRequired,
       client: PropTypes.shape({
         getConvertCoinEstimate: PropTypes.func.isRequired,
         getConvertCoinGasLimit: PropTypes.func.isRequired,
@@ -84,6 +87,7 @@ const withConvertCoinToMETState = WrappedComponent => {
       this.props.client
         .getConvertCoinGasLimit({
           value: this.props.client.toWei(utils.sanitize(coinAmount)),
+          chain: this.props.activeChain,
           from: this.props.from
         })
         .then(({ gasLimit }) =>
@@ -107,7 +111,8 @@ const withConvertCoinToMETState = WrappedComponent => {
       }
       client
         .getConvertCoinEstimate({
-          value: client.toWei(utils.sanitize(coinAmount))
+          value: client.toWei(utils.sanitize(coinAmount)),
+          chain: this.props.activeChain
         })
         .then(({ result }) => {
           const rate = utils.getConversionRate(
@@ -129,18 +134,20 @@ const withConvertCoinToMETState = WrappedComponent => {
             ? this.state.estimate
             : undefined,
         gasPrice: this.props.client.toWei(this.state.gasPrice, 'gwei'),
-        gas: this.state.gasLimit,
+        walletId: this.props.walletId,
         password,
         value: this.props.client.toWei(utils.sanitize(this.state.coinAmount)),
-        from: this.props.from
+        chain: this.props.activeChain,
+        from: this.props.from,
+        gas: this.state.gasLimit
       })
 
     validate = () => {
       const {
+        useMinimum,
         coinAmount,
         gasPrice,
         gasLimit,
-        useMinimum,
         estimate
       } = this.state
       const { client } = this.props
@@ -202,7 +209,9 @@ const withConvertCoinToMETState = WrappedComponent => {
     converterPrice: selectors.getConverterPrice(state),
     availableCoin: selectors.getCoinBalanceWei(state),
     chainGasPrice: selectors.getChainGasPrice(state),
+    activeChain: selectors.getActiveChain(state),
     coinPrice: selectors.getCoinRate(state),
+    walletId: selectors.getActiveWalletId(state),
     from: selectors.getActiveAddress(state)
   })
 

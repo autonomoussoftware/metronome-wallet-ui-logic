@@ -15,7 +15,10 @@ const withBuyMETFormState = WrappedComponent => {
       availableCoin: PropTypes.string.isRequired,
       chainGasPrice: PropTypes.string.isRequired,
       currentPrice: PropTypes.string.isRequired,
+      activeChain: PropTypes.string.isRequired,
       coinPrice: PropTypes.number.isRequired,
+      walletId: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+        .isRequired,
       client: PropTypes.shape({
         getAuctionGasLimit: PropTypes.func.isRequired,
         buyMetronome: PropTypes.func.isRequired,
@@ -65,6 +68,7 @@ const withBuyMETFormState = WrappedComponent => {
       this.props.client
         .getAuctionGasLimit({
           value: this.props.client.toWei(utils.sanitize(coinAmount)),
+          chain: this.props.activeChain,
           from: this.props.from
         })
         .then(({ gasLimit }) => {
@@ -78,11 +82,13 @@ const withBuyMETFormState = WrappedComponent => {
 
     onSubmit = password =>
       this.props.client.buyMetronome({
-        gasPrice: this.props.client.toWei(this.state.gasPrice, 'gwei'),
-        gas: this.state.gasLimit,
         password,
+        gasPrice: this.props.client.toWei(this.state.gasPrice, 'gwei'),
+        walletId: this.props.walletId,
         value: this.props.client.toWei(utils.sanitize(this.state.coinAmount)),
-        from: this.props.from
+        chain: this.props.activeChain,
+        from: this.props.from,
+        gas: this.state.gasLimit
       })
 
     validate = () => {
@@ -143,7 +149,9 @@ const withBuyMETFormState = WrappedComponent => {
     availableCoin: selectors.getCoinBalanceWei(state),
     chainGasPrice: selectors.getChainGasPrice(state),
     currentPrice: selectors.getAuctionStatus(state).currentPrice,
+    activeChain: selectors.getActiveChain(state),
     coinPrice: selectors.getCoinRate(state),
+    walletId: selectors.getActiveWalletId(state),
     from: selectors.getActiveAddress(state)
   })
 

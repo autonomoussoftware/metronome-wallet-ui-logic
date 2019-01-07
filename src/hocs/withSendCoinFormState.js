@@ -13,7 +13,10 @@ const withSendCoinFormState = WrappedComponent => {
       coinDefaultGasLimit: PropTypes.string.isRequired,
       chainGasPrice: PropTypes.string.isRequired,
       availableCoin: PropTypes.string.isRequired,
+      activeChain: PropTypes.string.isRequired,
       coinPrice: PropTypes.number.isRequired,
+      walletId: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+        .isRequired,
       client: PropTypes.shape({
         getGasLimit: PropTypes.func.isRequired,
         isAddress: PropTypes.func.isRequired,
@@ -69,6 +72,7 @@ const withSendCoinFormState = WrappedComponent => {
       this.props.client
         .getGasLimit({
           value: this.props.client.toWei(utils.sanitize(coinAmount)),
+          chain: this.props.activeChain,
           from: this.props.from,
           to: this.state.toAddress
         })
@@ -84,10 +88,12 @@ const withSendCoinFormState = WrappedComponent => {
     onSubmit = password =>
       this.props.client.sendCoin({
         gasPrice: this.props.client.toWei(this.state.gasPrice, 'gwei'),
-        gas: this.state.gasLimit,
+        walletId: this.props.walletId,
         password,
         value: this.props.client.toWei(utils.sanitize(this.state.coinAmount)),
+        chain: this.props.activeChain,
         from: this.props.from,
+        gas: this.state.gasLimit,
         to: this.state.toAddress
       })
 
@@ -140,7 +146,9 @@ const withSendCoinFormState = WrappedComponent => {
       .coinDefaultGasLimit,
     chainGasPrice: selectors.getChainGasPrice(state),
     availableCoin: selectors.getCoinBalanceWei(state),
+    activeChain: selectors.getActiveChain(state),
     coinPrice: selectors.getCoinRate(state),
+    walletId: selectors.getActiveWalletId(state),
     from: selectors.getActiveAddress(state)
   })
 

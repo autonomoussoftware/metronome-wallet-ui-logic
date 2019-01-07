@@ -14,6 +14,9 @@ const withConvertMETtoCoinState = WrappedComponent => {
       converterPrice: PropTypes.string.isRequired,
       chainGasPrice: PropTypes.string.isRequired,
       availableMET: PropTypes.string.isRequired,
+      activeChain: PropTypes.string.isRequired,
+      walletId: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+        .isRequired,
       client: PropTypes.shape({
         getConvertMetEstimate: PropTypes.func.isRequired,
         getConvertMetGasLimit: PropTypes.func.isRequired,
@@ -79,6 +82,7 @@ const withConvertMETtoCoinState = WrappedComponent => {
       this.props.client
         .getConvertMetGasLimit({
           value: this.props.client.toWei(utils.sanitize(metAmount)),
+          chain: this.props.activeChain,
           from: this.props.from
         })
         .then(({ gasLimit }) =>
@@ -102,7 +106,8 @@ const withConvertMETtoCoinState = WrappedComponent => {
       }
       client
         .getConvertMetEstimate({
-          value: client.toWei(utils.sanitize(metAmount))
+          value: client.toWei(utils.sanitize(metAmount)),
+          chain: this.props.activeChain
         })
         .then(({ result }) => {
           const rate = utils.getConversionRate(
@@ -124,10 +129,12 @@ const withConvertMETtoCoinState = WrappedComponent => {
             ? this.state.estimate
             : undefined,
         gasPrice: this.props.client.toWei(this.state.gasPrice, 'gwei'),
-        gas: this.state.gasLimit,
+        walletId: this.props.walletId,
         password,
         value: this.props.client.toWei(utils.sanitize(this.state.metAmount)),
-        from: this.props.from
+        chain: this.props.activeChain,
+        from: this.props.from,
+        gas: this.state.gasLimit
       })
 
     validate = () => {
@@ -188,6 +195,8 @@ const withConvertMETtoCoinState = WrappedComponent => {
     converterPrice: selectors.getConverterPrice(state),
     chainGasPrice: selectors.getChainGasPrice(state),
     availableMET: selectors.getMetBalanceWei(state),
+    activeChain: selectors.getActiveChain(state),
+    walletId: selectors.getActiveWalletId(state),
     from: selectors.getActiveAddress(state)
   })
 

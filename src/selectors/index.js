@@ -7,7 +7,7 @@ import get from 'lodash/get'
 // Returns the "chains" state branch
 export const getChains = state => state.chains
 
-// Returns the id of the active chain
+// Returns the active chain id
 export const getActiveChain = createSelector(getChains, chains => chains.active)
 
 // Returns a map of enabled chains by id
@@ -62,7 +62,7 @@ const getWalletsById = createSelector(
 )
 
 // Returns the active wallet id on active chain
-const getActiveWalletId = createSelector(
+export const getActiveWalletId = createSelector(
   getActiveChainData,
   chainData => chainData.wallets.active
 )
