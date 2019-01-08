@@ -7,7 +7,8 @@ const withSendDrawerState = WrappedComponent => {
   class Container extends React.Component {
     static propTypes = {
       sendMetFeatureStatus: PropTypes.oneOf(['no-funds', 'offline', 'ok'])
-        .isRequired
+        .isRequired,
+      coinSymbol: PropTypes.string.isRequired
     }
 
     static displayName = `withSendDrawerState(${WrappedComponent.displayName ||
@@ -36,7 +37,8 @@ const withSendDrawerState = WrappedComponent => {
   }
 
   const mapStateToProps = state => ({
-    sendMetFeatureStatus: selectors.sendMetFeatureStatus(state)
+    sendMetFeatureStatus: selectors.sendMetFeatureStatus(state),
+    coinSymbol: selectors.getCoinSymbol(state)
   })
 
   return connect(mapStateToProps)(Container)

@@ -14,6 +14,7 @@ const withSendCoinFormState = WrappedComponent => {
       chainGasPrice: PropTypes.string.isRequired,
       availableCoin: PropTypes.string.isRequired,
       activeChain: PropTypes.string.isRequired,
+      coinSymbol: PropTypes.string.isRequired,
       coinPrice: PropTypes.number.isRequired,
       walletId: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
         .isRequired,
@@ -147,6 +148,7 @@ const withSendCoinFormState = WrappedComponent => {
     chainGasPrice: selectors.getChainGasPrice(state),
     availableCoin: selectors.getCoinBalanceWei(state),
     activeChain: selectors.getActiveChain(state),
+    coinSymbol: selectors.getCoinSymbol(state),
     coinPrice: selectors.getCoinRate(state),
     walletId: selectors.getActiveWalletId(state),
     from: selectors.getActiveAddress(state)

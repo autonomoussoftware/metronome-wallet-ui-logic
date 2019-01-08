@@ -121,7 +121,7 @@ export const getCoinRate = createSelector(
   chainData => chainData.meta.rate
 )
 
-// Returns the current chain symbol (to display next to amounts)
+// Returns the current chain symbol (e.g. to display next to amounts)
 export const getCoinSymbol = createSelector(
   getActiveChainConfig,
   activeChainConfig => activeChainConfig.symbol

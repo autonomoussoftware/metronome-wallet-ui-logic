@@ -15,6 +15,7 @@ const withConvertMETtoCoinState = WrappedComponent => {
       chainGasPrice: PropTypes.string.isRequired,
       availableMET: PropTypes.string.isRequired,
       activeChain: PropTypes.string.isRequired,
+      coinSymbol: PropTypes.string.isRequired,
       walletId: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
         .isRequired,
       client: PropTypes.shape({
@@ -196,6 +197,7 @@ const withConvertMETtoCoinState = WrappedComponent => {
     chainGasPrice: selectors.getChainGasPrice(state),
     availableMET: selectors.getMetBalanceWei(state),
     activeChain: selectors.getActiveChain(state),
+    coinSymbol: selectors.getCoinSymbol(state),
     walletId: selectors.getActiveWalletId(state),
     from: selectors.getActiveAddress(state)
   })

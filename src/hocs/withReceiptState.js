@@ -9,6 +9,7 @@ const withReceiptState = WrappedComponent => {
   class Container extends React.Component {
     static propTypes = {
       confirmations: PropTypes.number.isRequired,
+      coinSymbol: PropTypes.string.isRequired,
       address: PropTypes.string.isRequired,
       client: PropTypes.shape({
         onExplorerLinkClick: PropTypes.func.isRequired,
@@ -67,6 +68,7 @@ const withReceiptState = WrappedComponent => {
 
     return {
       confirmations: selectors.getTxConfirmations(state, { tx }),
+      coinSymbol: selectors.getCoinSymbol(state),
       address: selectors.getActiveAddress(state),
       tx
     }

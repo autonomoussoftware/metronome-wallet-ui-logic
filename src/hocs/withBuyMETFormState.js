@@ -16,6 +16,7 @@ const withBuyMETFormState = WrappedComponent => {
       chainGasPrice: PropTypes.string.isRequired,
       currentPrice: PropTypes.string.isRequired,
       activeChain: PropTypes.string.isRequired,
+      coinSymbol: PropTypes.string.isRequired,
       coinPrice: PropTypes.number.isRequired,
       walletId: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
         .isRequired,
@@ -150,6 +151,7 @@ const withBuyMETFormState = WrappedComponent => {
     chainGasPrice: selectors.getChainGasPrice(state),
     currentPrice: selectors.getAuctionStatus(state).currentPrice,
     activeChain: selectors.getActiveChain(state),
+    coinSymbol: selectors.getCoinSymbol(state),
     coinPrice: selectors.getCoinRate(state),
     walletId: selectors.getActiveWalletId(state),
     from: selectors.getActiveAddress(state)

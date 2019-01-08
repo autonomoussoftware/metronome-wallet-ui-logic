@@ -1,8 +1,9 @@
-import { withClient } from './clientContext'
-import * as selectors from '../selectors'
 import { connect } from 'react-redux'
 import PropTypes from 'prop-types'
 import React from 'react'
+
+import { withClient } from './clientContext'
+import * as selectors from '../selectors'
 
 const withConverterState = WrappedComponent => {
   class Container extends React.Component {
@@ -14,6 +15,7 @@ const withConverterState = WrappedComponent => {
         availableCoin: PropTypes.string.isRequired,
         availableMet: PropTypes.string.isRequired
       }),
+      coinSymbol: PropTypes.string.isRequired,
       client: PropTypes.shape({
         fromWei: PropTypes.func.isRequired
       }).isRequired
@@ -45,7 +47,8 @@ const withConverterState = WrappedComponent => {
   const mapStateToProps = (state, { client }) => ({
     convertFeatureStatus: selectors.convertFeatureStatus(state),
     converterPriceUSD: selectors.getConverterPriceUSD(state, client),
-    converterStatus: selectors.getConverterStatus(state)
+    converterStatus: selectors.getConverterStatus(state),
+    coinSymbol: selectors.getCoinSymbol(state)
   })
 
   return withClient(connect(mapStateToProps)(Container))

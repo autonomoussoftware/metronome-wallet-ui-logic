@@ -82,7 +82,7 @@ function getSymbol(tokenData, txType) {
   return ['received', 'sent'].includes(txType)
     ? tokenData
       ? 'MET'
-      : 'ETH'
+      : 'coin'
     : null
 }
 
@@ -90,13 +90,13 @@ function getConvertedFrom(rawTx, txType) {
   return txType === 'converted'
     ? new BigNumber(rawTx.transaction.value).isZero()
       ? 'MET'
-      : 'ETH'
+      : 'coin'
     : null
 }
 
 function getFromValue(rawTx, tokenData, convertedFrom) {
   return convertedFrom
-    ? convertedFrom === 'ETH'
+    ? convertedFrom === 'coin'
       ? rawTx.transaction.value
       : tokenData
         ? tokenData.value
@@ -106,7 +106,7 @@ function getFromValue(rawTx, tokenData, convertedFrom) {
 
 function getToValue(rawTx, tokenData, convertedFrom) {
   return convertedFrom && tokenData && rawTx.meta
-    ? convertedFrom === 'ETH'
+    ? convertedFrom === 'coin'
       ? tokenData.value
       : rawTx.meta.returnedValue
     : null
