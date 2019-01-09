@@ -10,6 +10,7 @@ const withPortState = WrappedComponent => {
     static propTypes = {
       portFeatureStatus: PropTypes.oneOf(['offline', 'no-coin', 'ok'])
         .isRequired,
+      coinSymbol: PropTypes.string.isRequired,
       client: PropTypes.shape({
         retryImport: PropTypes.func.isRequired
       }).isRequired
@@ -21,13 +22,13 @@ const withPortState = WrappedComponent => {
     onRetry = hash => this.props.client.retryImport(hash)
 
     render() {
-      const { portFeatureStatus } = this.props
+      const { portFeatureStatus, coinSymbol } = this.props
 
       const portDisabledReason =
         portFeatureStatus === 'offline'
           ? "Can't port while offline"
           : portFeatureStatus === 'no-coin'
-            ? 'You need some ETH to pay for port gas'
+            ? `You need some ${coinSymbol} to pay for port gas`
             : null
 
       return (
@@ -44,7 +45,8 @@ const withPortState = WrappedComponent => {
   const mapStateToProps = state => ({
     portFeatureStatus: selectors.portFeatureStatus(state),
     pendingImports: selectors.getPendingImports(state),
-    failedImports: selectors.getFailedImports(state)
+    failedImports: selectors.getFailedImports(state),
+    coinSymbol: selectors.getCoinSymbol(state)
   })
 
   return withClient(connect(mapStateToProps)(Container))

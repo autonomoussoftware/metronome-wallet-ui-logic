@@ -25,13 +25,13 @@ const withConverterState = WrappedComponent => {
       WrappedComponent.name})`
 
     render() {
-      const { convertFeatureStatus } = this.props
+      const { convertFeatureStatus, coinSymbol } = this.props
 
       const convertDisabledReason =
         convertFeatureStatus === 'offline'
           ? "Can't convert while offline"
           : convertFeatureStatus === 'no-coin'
-            ? 'You need some ETH to pay for conversion gas'
+            ? `You need some ${coinSymbol} to pay for conversion gas`
             : null
 
       return (

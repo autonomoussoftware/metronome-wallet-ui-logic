@@ -168,7 +168,7 @@ export const createTransactionParser = myAddress => rawTx => {
   const convertedFrom = getConvertedFrom(rawTx, txType)
 
   return {
-    mtnBoughtInAuction: getMetBoughtInAuction(rawTx, tokenData, txType),
+    metBoughtInAuction: getMetBoughtInAuction(rawTx, tokenData, txType),
     contractCallFailed: getContractCallFailed(rawTx),
     coinSpentInAuction: getCoinSpentInAuction(rawTx, txType),
     isCancelApproval: getIsCancelApproval(tokenData),

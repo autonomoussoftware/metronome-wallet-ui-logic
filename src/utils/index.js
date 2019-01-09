@@ -44,7 +44,7 @@ export function isGreaterThanZero(client, amount) {
 
 export function isFailed(tx, confirmations) {
   return (
-    (tx.txType === 'auction' && !tx.mtnBoughtInAuction && confirmations > 0) ||
+    (tx.txType === 'auction' && !tx.metBoughtInAuction && confirmations > 0) ||
     tx.contractCallFailed
   )
 }

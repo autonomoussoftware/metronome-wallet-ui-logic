@@ -14,7 +14,7 @@ const withTxRowState = WrappedComponent => {
       confirmations: PropTypes.number.isRequired,
       coinSymbol: PropTypes.string.isRequired,
       tx: PropTypes.shape({
-        mtnBoughtInAuction: PropTypes.string,
+        metBoughtInAuction: PropTypes.string,
         contractCallFailed: PropTypes.bool,
         txType: PropTypes.string.isRequired
       }).isRequired

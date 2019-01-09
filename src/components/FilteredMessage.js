@@ -7,21 +7,22 @@ import * as selectors from '../selectors'
 
 class FilteredMessage extends React.Component {
   static propTypes = {
+    coinSymbol: PropTypes.string.isRequired,
     children: PropTypes.node.isRequired,
     config: PropTypes.shape({
-      MET_TOKEN_ADDR: PropTypes.string.isRequired,
-      CONVERTER_ADDR: PropTypes.string.isRequired
+      converterAddress: PropTypes.string.isRequired,
+      metTokenAddress: PropTypes.string.isRequired
     }).isRequired
   }
 
-  messageParser(config, str) {
+  messageParser(str) {
     const replacements = [
       {
-        search: this.props.config.MET_TOKEN_ADDR,
+        search: this.props.config.metTokenAddress,
         replaceWith: 'MET TOKEN CONTRACT'
       },
       {
-        search: this.props.config.CONVERTER_ADDR,
+        search: this.props.config.converterAddress,
         replaceWith: 'CONVERTER CONTRACT'
       },
       { search: /(.*gas too low.*)/gim, replaceWith: () => 'Gas too low.' },
@@ -37,10 +38,10 @@ class FilteredMessage extends React.Component {
           return [
             p1,
             rounder(p2, true),
-            ' ETH',
+            ` ${this.props.coinSymbol}`,
             p3,
             rounder(p4, true),
-            ' ETH',
+            ` ${this.props.coinSymbol}`,
             p5
           ].join('')
         }
@@ -54,12 +55,13 @@ class FilteredMessage extends React.Component {
   }
 
   render() {
-    return this.messageParser(this.props.config, this.props.children)
+    return this.messageParser(this.props.children)
   }
 }
 
 const mapStateToProps = state => ({
-  config: selectors.getConfig(state)
+  coinSymbol: selectors.getCoinSymbol(state),
+  config: selectors.getActiveChainConfig(state)
 })
 
 export default connect(mapStateToProps)(FilteredMessage)

@@ -12,7 +12,7 @@ const reducer = handleActions(
       ...get(payload, 'converter', {})
     }),
 
-    'mtn-converter-status-updated': (state, { payload }) => ({
+    'converter-status-updated': (state, { payload }) => ({
       ...state,
       status: payload
     })
