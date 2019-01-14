@@ -20,6 +20,9 @@ const withPortFormState = WrappedComponent => {
       sourceDisplayName: PropTypes.string.isRequired,
       chainGasPrice: PropTypes.string.isRequired,
       availableMet: PropTypes.string.isRequired,
+      activeChain: PropTypes.string.isRequired,
+      walletId: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+        .isRequired,
       source: PropTypes.string.isRequired,
       client: PropTypes.shape({
         getPortFeeEstimate: PropTypes.func.isRequired,
@@ -96,11 +99,16 @@ const withPortFormState = WrappedComponent => {
 
     onSubmit = password =>
       this.props.client.portMetronome({
+        destinationChain: this.state.destination,
         gasPrice: this.props.client.toWei(this.state.gasPrice, 'gwei'),
+        walletId: this.props.walletId,
         password,
         value: this.props.client.toWei(utils.sanitize(this.state.metAmount)),
+        chain: this.props.activeChain,
         from: this.props.from,
-        gas: this.state.gasLimit
+        gas: this.state.gasLimit,
+        fee: this.state.fee,
+        to: this.props.from
       })
 
     validate = () => {
@@ -145,7 +153,9 @@ const withPortFormState = WrappedComponent => {
     sourceDisplayName: selectors.getActiveChainDisplayName(state),
     chainGasPrice: selectors.getChainGasPrice(state),
     availableMet: selectors.getMetBalanceWei(state),
+    activeChain: selectors.getActiveChain(state),
     chainsById: selectors.getChainsById(state),
+    walletId: selectors.getActiveWalletId(state),
     source: selectors.getActiveChain(state),
     from: selectors.getActiveAddress(state)
   })
