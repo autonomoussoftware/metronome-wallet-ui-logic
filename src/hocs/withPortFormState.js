@@ -25,9 +25,8 @@ const withPortFormState = WrappedComponent => {
         .isRequired,
       source: PropTypes.string.isRequired,
       client: PropTypes.shape({
-        getPortFeeEstimate: PropTypes.func.isRequired,
-        getPortGasLimit: PropTypes.func.isRequired,
         portMetronome: PropTypes.func.isRequired,
+        getPortFees: PropTypes.func.isRequired,
         fromWei: PropTypes.func.isRequired,
         toWei: PropTypes.func.isRequired
       }).isRequired,
@@ -79,22 +78,23 @@ const withPortFormState = WrappedComponent => {
       const value = this.props.client.toWei(utils.sanitize(metAmount))
 
       this.props.client
-        .getPortFeeEstimate({ value })
-        .then(({ fee }) => this.setState({ feeError: null, fee }))
-        .catch(err => this.setState({ feeError: err.message }))
-
-      this.props.client
-        .getPortGasLimit({
-          value,
-          from: this.props.from
+        .getPortFees({
+          chain: this.props.activeChain,
+          from: this.props.from,
+          to: this.props.from,
+          value
         })
-        .then(({ gasLimit }) => {
+        .then(({ fee, exportGasLimit }) =>
           this.setState({
             gasEstimateError: false,
-            gasLimit: gasLimit.toString()
+            gasLimit: exportGasLimit.toString(),
+            feeError: null,
+            fee
           })
-        })
-        .catch(() => this.setState({ gasEstimateError: true }))
+        )
+        .catch(err =>
+          this.setState({ gasEstimateError: true, feeError: err.message })
+        )
     }, 500)
 
     onSubmit = password =>
