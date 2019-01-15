@@ -65,7 +65,7 @@ const withPortFormState = WrappedComponent => {
       }))
 
       // Estimate gas limit again if parameters changed
-      if (['metAmount', 'destinationChain'].includes(id)) this.getEstimates()
+      if (['metAmount', 'destination'].includes(id)) this.getEstimates()
     }
 
     getEstimates = debounce(() => {
