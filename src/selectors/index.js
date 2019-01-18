@@ -1,8 +1,10 @@
 import { createSelector } from 'reselect'
-import * as utils from '../utils'
 import mapValues from 'lodash/mapValues'
+import flatMap from 'lodash/flatMap'
 import sortBy from 'lodash/sortBy'
 import get from 'lodash/get'
+
+import * as utils from '../utils'
 
 // Returns the "chains" state branch
 export const getChains = state => state.chains
@@ -328,25 +330,66 @@ export const convertFeatureStatus = createSelector(
     !isOnline ? 'offline' : !utils.hasFunds(coinBalance) ? 'no-coin' : 'ok'
 )
 
-// Returns the "port" state branch for the active chain
-export const getPort = createSelector(
-  getActiveChainData,
-  activeChain => activeChain.port
-)
-
 // Returns the status of the "Port" feature on the active chain
 export const portFeatureStatus = () => 'ok'
 
 // Returns an array of ongoing imports with not enough validations yet
-export const getPendingImports = createSelector(
-  getPort,
-  port => port.pendingImports
-)
+export const getPendingImports = createSelector(getActiveChain, () => [])
 
 // Returns an array of exports that lack an import operation
 export const getFailedImports = createSelector(
-  getPort,
-  port => port.failedImports
+  getActiveAddressData,
+  getActiveAddress,
+  getChainsById,
+  getCoinSymbol,
+  getConfig,
+  // eslint-disable-next-line max-params
+  (activeAddressData, activeAddress, chainsById, coinSymbol, config) => {
+    // combine all txs, from all addresses, from all wallets, from all chains
+    const allTx = flatMap(chainsById, ({ wallets }, chainName) =>
+      flatMap(wallets.byId, ({ addresses }) =>
+        flatMap(addresses, ({ transactions }) =>
+          transactions.map(t => ({
+            ...t,
+            originChain: config.chains[chainName].symbol
+          }))
+        )
+      )
+    )
+
+    // keep only export transactions with active chain as destination
+    function isFailedImport(tx) {
+      const isExport = get(tx, 'meta.metronome.export', false)
+
+      const isForActiveChain =
+        get(tx, 'meta.metronome.export.destinationChain', null) === coinSymbol
+
+      const isForActiveAddress =
+        get(tx, 'meta.metronome.export.to', null) === activeAddress
+
+      const burnHash = get(tx, 'meta.metronome.export.currentBurnHash', null)
+
+      const wasImportRequested =
+        activeAddressData.transactions.findIndex(
+          transaction =>
+            get(transaction, 'meta.metronome.importRequest.burnHash', null) ===
+            burnHash
+        ) > -1
+
+      return (
+        isExport &&
+        isForActiveChain &&
+        isForActiveAddress &&
+        !wasImportRequested
+      )
+    }
+
+    return allTx.filter(isFailedImport).map(t => ({
+      originChain: t.originChain,
+      receipt: get(t, 'receipt', {}),
+      meta: get(t, 'meta.metronome.export', {})
+    }))
+  }
 )
 
 export const getChainsWithBalances = createSelector(

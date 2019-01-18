@@ -4,7 +4,6 @@ import get from 'lodash/get'
 import converter from './converter'
 import wallets from './wallets'
 import auction from './auction'
-import port from './port'
 import meta from './meta'
 
 const initialState = {
@@ -21,8 +20,7 @@ const createChainReducer = chain => (state, action) => {
     converter,
     auction,
     wallets,
-    meta,
-    port
+    meta
   })(state, action)
 }
 
