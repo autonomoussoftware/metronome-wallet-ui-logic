@@ -13,17 +13,18 @@ const withOfflineState = WrappedComponent => {
     static displayName = `withOfflineState(${WrappedComponent.displayName ||
       WrappedComponent.name})`
 
-    constructor(props) {
-      super(props)
-      this.state = {
-        isVisible: !props.isOnline
-      }
+    state = {
+      isVisible: !this.props.isOnline
     }
 
-    componentDidUpdate(prevProps, prevState) {
-      if (prevState.isVisible && this.props.isOnline) {
+    componentDidUpdate(prevProps) {
+      if (this.state.isVisible && this.props.isOnline && !prevProps.isOnline) {
         this.setState({ isVisible: false })
-      } else if (!this.props.isOnline) {
+      } else if (
+        !this.state.isVisible &&
+        !this.props.isOnline &&
+        prevProps.isOnline
+      ) {
         this.setState({ isVisible: true })
       }
     }
