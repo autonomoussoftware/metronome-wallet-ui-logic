@@ -270,11 +270,10 @@ export const hasTransactions = createSelector(
   transactions => transactions.length > 0
 )
 
-// Returns if wallet is scanning transactions on the active chain
-// export const getIsScanningTx = state => state.wallets.isScanningTx
-export const getIsScanningTx = createSelector(
+// Returns wallet transactions sync status on the active chain
+export const getTxSyncStatus = createSelector(
   getActiveChainData,
-  chainData => chainData.wallets.isScanningTx
+  chainData => chainData.wallets.syncStatus
 )
 
 // Returns a transaction object given a transaction hash

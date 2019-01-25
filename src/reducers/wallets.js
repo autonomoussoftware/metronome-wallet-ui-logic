@@ -4,7 +4,7 @@ import unionBy from 'lodash/unionBy'
 import get from 'lodash/get'
 
 const initialState = {
-  isScanningTx: false,
+  syncStatus: 'up-to-date',
   active: null,
   allIds: null,
   byId: null
@@ -15,7 +15,7 @@ const reducer = handleActions(
     'initial-state-received': (state, { payload }) => ({
       ...state,
       ...get(payload, 'wallets', {}),
-      isScanningTx: state.isScanningTx
+      syncStatus: state.syncStatus
     }),
 
     'create-wallet': (state, { payload }) => ({
@@ -51,12 +51,12 @@ const reducer = handleActions(
 
     'transactions-scan-started': state => ({
       ...state,
-      isScanningTx: true
+      syncStatus: 'syncing'
     }),
 
-    'transactions-scan-finished': state => ({
+    'transactions-scan-finished': (state, { payload }) => ({
       ...state,
-      isScanningTx: false
+      syncStatus: payload.error ? 'failed' : 'up-to-date'
     })
   },
   initialState

@@ -16,7 +16,7 @@ const withReceiptState = WrappedComponent => {
         refreshTransaction: PropTypes.func.isRequired,
         copyToClipboard: PropTypes.func.isRequired
       }).isRequired,
-      hash: PropTypes.string.isRequired,
+      hash: PropTypes.string,
       tx: PropTypes.object.isRequired
     }
 

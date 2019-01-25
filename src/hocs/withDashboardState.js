@@ -9,7 +9,8 @@ const withDashboardState = WrappedComponent => {
     static propTypes = {
       sendFeatureStatus: PropTypes.oneOf(['offline', 'no-funds', 'ok'])
         .isRequired,
-      isScanningTx: PropTypes.bool.isRequired,
+      syncStatus: PropTypes.oneOf(['up-to-date', 'syncing', 'failed'])
+        .isRequired,
       address: PropTypes.string.isRequired,
       client: PropTypes.shape({
         refreshAllTransactions: PropTypes.func.isRequired,
@@ -64,7 +65,7 @@ const withDashboardState = WrappedComponent => {
   const mapStateToProps = state => ({
     sendFeatureStatus: selectors.sendFeatureStatus(state),
     hasTransactions: selectors.hasTransactions(state),
-    isScanningTx: selectors.getIsScanningTx(state),
+    syncStatus: selectors.getTxSyncStatus(state),
     address: selectors.getActiveAddress(state)
   })
 
