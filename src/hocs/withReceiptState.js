@@ -9,6 +9,7 @@ const withReceiptState = WrappedComponent => {
   class Container extends React.Component {
     static propTypes = {
       confirmations: PropTypes.number.isRequired,
+      activeChain: PropTypes.string.isRequired,
       coinSymbol: PropTypes.string.isRequired,
       address: PropTypes.string.isRequired,
       client: PropTypes.shape({
@@ -38,7 +39,11 @@ const withReceiptState = WrappedComponent => {
     onRefreshRequest = () => {
       this.setState({ refreshStatus: 'pending', refreshError: null })
       this.props.client
-        .refreshTransaction(this.props.hash, this.props.address)
+        .refreshTransaction({
+          address: this.props.address,
+          chain: this.props.activeChain,
+          hash: this.props.hash
+        })
         .then(() => this.setState({ refreshStatus: 'success' }))
         .catch(() =>
           this.setState({
@@ -68,6 +73,7 @@ const withReceiptState = WrappedComponent => {
 
     return {
       confirmations: selectors.getTxConfirmations(state, { tx }),
+      activeChain: selectors.getActiveChain(state),
       coinSymbol: selectors.getCoinSymbol(state),
       address: selectors.getActiveAddress(state),
       tx

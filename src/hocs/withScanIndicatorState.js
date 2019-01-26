@@ -8,6 +8,8 @@ import * as selectors from '../selectors'
 const withScanIndicatorState = WrappedComponent => {
   class Container extends React.Component {
     static propTypes = {
+      activeAddress: PropTypes.string.isRequired,
+      activeChain: PropTypes.string.isRequired,
       syncStatus: PropTypes.oneOf(['up-to-date', 'syncing', 'failed'])
         .isRequired,
       syncBlock: PropTypes.number,
@@ -22,7 +24,10 @@ const withScanIndicatorState = WrappedComponent => {
 
     onLabelClick = () => {
       if (this.props.isOnline && this.props.syncStatus !== 'syncing') {
-        this.props.client.refreshAllTransactions()
+        this.props.client.refreshAllTransactions({
+          address: this.props.activeAddress,
+          chain: this.props.activeChain
+        })
       }
     }
 
@@ -55,6 +60,8 @@ const withScanIndicatorState = WrappedComponent => {
   }
 
   const mapStateToProps = state => ({
+    activeAddress: selectors.getActiveAddress(state),
+    activeChain: selectors.getActiveChain(state),
     isOnline: selectors.getIsOnline(state)
   })
 
