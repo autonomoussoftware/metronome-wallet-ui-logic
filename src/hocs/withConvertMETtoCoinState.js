@@ -70,30 +70,7 @@ const withConvertMETtoCoinState = WrappedComponent => {
         },
         [id]: utils.sanitizeInput(value)
       }))
-
-      // Estimate gas limit again if parameters changed
-      if (['metAmount'].includes(id)) this.getGasEstimate()
     }
-
-    getGasEstimate = debounce(() => {
-      const { metAmount } = this.state
-
-      if (!utils.isWeiable(this.props.client, metAmount)) return
-
-      this.props.client
-        .getConvertMetGasLimit({
-          value: this.props.client.toWei(utils.sanitize(metAmount)),
-          chain: this.props.activeChain,
-          from: this.props.from
-        })
-        .then(({ gasLimit }) =>
-          this.setState({
-            gasEstimateError: false,
-            gasLimit: gasLimit.toString()
-          })
-        )
-        .catch(() => this.setState({ gasEstimateError: true }))
-    }, 500)
 
     getConversionEstimate = debounce(() => {
       const { metAmount } = this.state
