@@ -13,6 +13,7 @@ const withGasEditorState = WrappedComponent => {
       activeChain: PropTypes.string.isRequired,
       gasPrice: PropTypes.string.isRequired,
       gasLimit: PropTypes.string.isRequired,
+      dispatch: PropTypes.func.isRequired,
       errors: PropTypes.shape({
         gasPrice: PropTypes.string,
         gasLimit: PropTypes.string
@@ -49,6 +50,11 @@ const withGasEditorState = WrappedComponent => {
     }
 
     updateGasPrice = ({ gasPrice }) => {
+      this.props.dispatch({
+        type: 'gas-price-updated',
+        payload: gasPrice,
+        chain: this.props.activeChain
+      })
       if (!this._isMounted) return
       this.setState({ priceError: false })
       this.props.onInputChange({
