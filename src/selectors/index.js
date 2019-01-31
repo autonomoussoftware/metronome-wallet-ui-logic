@@ -234,6 +234,13 @@ export const getChainGasPrice = createSelector(
   (chainConfig, chainMeta) => chainMeta.gasPrice || chainConfig.defaultGasPrice
 )
 
+// Returns the active chain connection status
+export const getChainConnectionStatus = createSelector(
+  getActiveChainConfig,
+  getChainMeta,
+  (chainConfig, chainMeta) => chainMeta.isConnected
+)
+
 // Returns the amount of confirmations for a given transaction
 export const getTxConfirmations = createSelector(
   getBlockHeight,
