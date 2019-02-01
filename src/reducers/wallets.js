@@ -56,7 +56,7 @@ const reducer = handleActions(
 
     'transactions-scan-finished': (state, { payload }) => ({
       ...state,
-      syncStatus: payload && payload.error ? 'failed' : 'up-to-date'
+      syncStatus: payload.success ? 'up-to-date' : 'failed'
     })
   },
   initialState
