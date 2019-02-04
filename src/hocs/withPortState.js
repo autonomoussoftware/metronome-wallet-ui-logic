@@ -37,15 +37,6 @@ const withPortState = WrappedComponent => {
         value: tx.meta.value,
         from: tx.receipt.from,
         fee: tx.meta.fee
-
-        // TODO: define these parameters
-        // dailyAuctionStartTime,
-        // destinationMetAddress,
-        // genesisTime,
-        // extraData,
-        // gasPrice,
-        // supply,
-        // gas,
       }
 
       this.props.client.retryImport(payload)
