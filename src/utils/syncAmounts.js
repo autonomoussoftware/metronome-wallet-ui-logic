@@ -36,7 +36,7 @@ function toUSD(client, amount, rate) {
   return expectedUSDamount
 }
 
-function toETH(client, amount, rate) {
+function toCoin(client, amount, rate) {
   let isValidAmount
   let weiAmount
   try {
@@ -46,38 +46,38 @@ function toETH(client, amount, rate) {
     isValidAmount = false
   }
 
-  const expectedETHamount = isValidAmount
+  const expectedCoinamount = isValidAmount
     ? weiAmount
         .dividedBy(new BigNumber(client.toWei(String(rate))))
         .decimalPlaces(18)
         .toString(10)
     : ERROR_VALUE_PLACEHOLDER
 
-  return expectedETHamount
+  return expectedCoinamount
 }
 
 /**
- * Returns an updated state with ETH and USD values are synced
- * Useful for updating a pair of ETH - USD inputs
+ * Returns an updated state with coin and USD values are synced
+ * Useful for updating a pair of coin - USD inputs
  *
  * @param {Object} params - Params required for the conversion
  * @param {string} params.state - The initial component state
- * @param {string} params.ETHprice - The ETH/USD rate
+ * @param {string} params.coinPrice - The coin/USD rate
  * @param {string} params.id - The id of the field being updated
  * @param {string} params.value - The new value of the field being updated
  * @param {string} params.client - The client object
  */
-export function syncAmounts({ state, ETHprice, id, value, client }) {
+export function syncAmounts({ state, coinPrice, id, value, client }) {
   const sanitizedValue = sanitizeInput(value)
   return {
     ...state,
     usdAmount:
-      id === 'ethAmount'
-        ? toUSD(client, sanitizedValue, ETHprice)
+      id === 'coinAmount'
+        ? toUSD(client, sanitizedValue, coinPrice)
         : state.usdAmount,
-    ethAmount:
+    coinAmount:
       id === 'usdAmount'
-        ? toETH(client, sanitizedValue, ETHprice)
-        : state.ethAmount
+        ? toCoin(client, sanitizedValue, coinPrice)
+        : state.coinAmount
   }
 }

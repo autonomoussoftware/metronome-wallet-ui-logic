@@ -1,4 +1,3 @@
-import { getInitialState } from './withGasEditorState'
 import * as validators from '../validators'
 import { withClient } from './clientContext'
 import * as selectors from '../selectors'
@@ -8,34 +7,38 @@ import PropTypes from 'prop-types'
 import debounce from 'lodash/debounce'
 import React from 'react'
 
-const withSendETHFormState = WrappedComponent => {
+const withSendCoinFormState = WrappedComponent => {
   class Container extends React.Component {
     static propTypes = {
-      availableETH: PropTypes.string.isRequired,
-      ETHprice: PropTypes.number.isRequired,
+      coinDefaultGasLimit: PropTypes.string.isRequired,
+      chainGasPrice: PropTypes.string.isRequired,
+      availableCoin: PropTypes.string.isRequired,
+      activeChain: PropTypes.string.isRequired,
+      coinSymbol: PropTypes.string.isRequired,
+      coinPrice: PropTypes.number.isRequired,
+      walletId: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+        .isRequired,
       client: PropTypes.shape({
         getGasLimit: PropTypes.func.isRequired,
         isAddress: PropTypes.func.isRequired,
-        sendEth: PropTypes.func.isRequired,
+        sendCoin: PropTypes.func.isRequired,
         fromWei: PropTypes.func.isRequired,
         toWei: PropTypes.func.isRequired
-      }).isRequired,
-      config: PropTypes.shape({
-        MET_DEFAULT_GAS_LIMIT: PropTypes.string.isRequired,
-        DEFAULT_GAS_PRICE: PropTypes.string.isRequired
       }).isRequired,
       from: PropTypes.string.isRequired
     }
 
-    static displayName = `withSendETHFormState(${WrappedComponent.displayName ||
+    static displayName = `withSendCoinFormState(${WrappedComponent.displayName ||
       WrappedComponent.name})`
 
     initialState = {
-      ...getInitialState('ETH', this.props.client, this.props.config),
       gasEstimateError: false,
-      toAddress: null,
-      ethAmount: null,
+      useCustomGas: false,
+      coinAmount: null,
       usdAmount: null,
+      toAddress: null,
+      gasPrice: this.props.client.fromWei(this.props.chainGasPrice, 'gwei'),
+      gasLimit: this.props.coinDefaultGasLimit,
       errors: {}
     }
 
@@ -44,34 +47,35 @@ const withSendETHFormState = WrappedComponent => {
     resetForm = () => this.setState(this.initialState)
 
     onInputChange = ({ id, value }) => {
-      const { ETHprice, client } = this.props
+      const { coinPrice, client } = this.props
       this.setState(state => ({
         ...state,
-        ...utils.syncAmounts({ state, ETHprice, id, value, client }),
+        ...utils.syncAmounts({ state, coinPrice, id, value, client }),
         gasEstimateError: id === 'gasLimit' ? false : state.gasEstimateError,
         errors: { ...state.errors, [id]: null },
         [id]: utils.sanitizeInput(value)
       }))
 
       // Estimate gas limit again if parameters changed
-      if (['ethAmount'].includes(id)) this.getGasEstimate()
+      if (['coinAmount'].includes(id)) this.getGasEstimate()
     }
 
     getGasEstimate = debounce(() => {
-      const { ethAmount, toAddress } = this.state
+      const { coinAmount, toAddress } = this.state
 
       if (
         !this.props.client.isAddress(toAddress) ||
-        !utils.isWeiable(this.props.client, ethAmount)
+        !utils.isWeiable(this.props.client, coinAmount)
       ) {
         return
       }
 
       this.props.client
         .getGasLimit({
+          value: this.props.client.toWei(utils.sanitize(coinAmount)),
+          chain: this.props.activeChain,
           from: this.props.from,
-          to: this.state.toAddress,
-          value: this.props.client.toWei(utils.sanitize(ethAmount))
+          to: this.state.toAddress
         })
         .then(({ gasLimit }) =>
           this.setState({
@@ -83,22 +87,24 @@ const withSendETHFormState = WrappedComponent => {
     }, 500)
 
     onSubmit = password =>
-      this.props.client.sendEth({
+      this.props.client.sendCoin({
         gasPrice: this.props.client.toWei(this.state.gasPrice, 'gwei'),
-        gas: this.state.gasLimit,
+        walletId: this.props.walletId,
         password,
-        value: this.props.client.toWei(utils.sanitize(this.state.ethAmount)),
+        value: this.props.client.toWei(utils.sanitize(this.state.coinAmount)),
+        chain: this.props.activeChain,
         from: this.props.from,
+        gas: this.state.gasLimit,
         to: this.state.toAddress
       })
 
     validate = () => {
-      const { ethAmount, toAddress, gasPrice, gasLimit } = this.state
+      const { coinAmount, toAddress, gasPrice, gasLimit } = this.state
       const { client } = this.props
-      const max = client.fromWei(this.props.availableETH)
+      const max = client.fromWei(this.props.availableCoin)
       const errors = {
         ...validators.validateToAddress(client, toAddress),
-        ...validators.validateEthAmount(client, ethAmount, max),
+        ...validators.validateCoinAmount(client, coinAmount, max),
         ...validators.validateGasPrice(client, gasPrice),
         ...validators.validateGasLimit(client, gasLimit)
       }
@@ -108,13 +114,13 @@ const withSendETHFormState = WrappedComponent => {
     }
 
     onMaxClick = () => {
-      const ethAmount = this.props.client.fromWei(this.props.availableETH)
-      this.onInputChange({ id: 'ethAmount', value: ethAmount })
+      const coinAmount = this.props.client.fromWei(this.props.availableCoin)
+      this.onInputChange({ id: 'coinAmount', value: coinAmount })
     }
 
     render() {
       const amountFieldsProps = utils.getAmountFieldsProps({
-        ethAmount: this.state.ethAmount,
+        coinAmount: this.state.coinAmount,
         usdAmount: this.state.usdAmount
       })
 
@@ -126,9 +132,9 @@ const withSendETHFormState = WrappedComponent => {
           onSubmit={this.onSubmit}
           {...this.props}
           {...this.state}
-          ethPlaceholder={amountFieldsProps.ethPlaceholder}
+          coinPlaceholder={amountFieldsProps.coinPlaceholder}
           usdPlaceholder={amountFieldsProps.usdPlaceholder}
-          ethAmount={amountFieldsProps.ethAmount}
+          coinAmount={amountFieldsProps.coinAmount}
           usdAmount={amountFieldsProps.usdAmount}
           validate={this.validate}
         />
@@ -137,13 +143,18 @@ const withSendETHFormState = WrappedComponent => {
   }
 
   const mapStateToProps = state => ({
-    availableETH: selectors.getEthBalanceWei(state),
-    ETHprice: selectors.getEthRate(state),
-    config: selectors.getConfig(state),
+    coinDefaultGasLimit: selectors.getActiveChainConfig(state)
+      .coinDefaultGasLimit,
+    chainGasPrice: selectors.getChainGasPrice(state),
+    availableCoin: selectors.getCoinBalanceWei(state),
+    activeChain: selectors.getActiveChain(state),
+    coinSymbol: selectors.getCoinSymbol(state),
+    coinPrice: selectors.getCoinRate(state),
+    walletId: selectors.getActiveWalletId(state),
     from: selectors.getActiveAddress(state)
   })
 
   return connect(mapStateToProps)(withClient(Container))
 }
 
-export default withSendETHFormState
+export default withSendCoinFormState

@@ -1,48 +1,60 @@
 import * as validators from '../validators'
-import { withClient } from './clientContext'
 import * as selectors from '../selectors'
+import { withClient } from './clientContext'
 import { connect } from 'react-redux'
 import * as utils from '../utils'
 import PropTypes from 'prop-types'
 import debounce from 'lodash/debounce'
 import React from 'react'
 
-const withSendMETFormState = WrappedComponent => {
+const withPortFormState = WrappedComponent => {
   class Container extends React.Component {
     static propTypes = {
       metDefaultGasLimit: PropTypes.string.isRequired,
-      metTokenAddress: PropTypes.string.isRequired,
+      availableDestinations: PropTypes.arrayOf(
+        PropTypes.shape({
+          label: PropTypes.string.isRequired,
+          value: PropTypes.string.isRequired
+        })
+      ).isRequired,
+      sourceDisplayName: PropTypes.string.isRequired,
       chainGasPrice: PropTypes.string.isRequired,
-      availableMET: PropTypes.string.isRequired,
+      availableMet: PropTypes.string.isRequired,
       activeChain: PropTypes.string.isRequired,
       walletId: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
         .isRequired,
+      source: PropTypes.string.isRequired,
       client: PropTypes.shape({
-        getTokensGasLimit: PropTypes.func.isRequired,
-        isAddress: PropTypes.func.isRequired,
-        sendMet: PropTypes.func.isRequired,
+        portMetronome: PropTypes.func.isRequired,
+        getPortFees: PropTypes.func.isRequired,
         fromWei: PropTypes.func.isRequired,
         toWei: PropTypes.func.isRequired
       }).isRequired,
       from: PropTypes.string.isRequired
     }
 
-    static displayName = `withSendMETFormState(${WrappedComponent.displayName ||
+    static displayName = `withPortFormState(${WrappedComponent.displayName ||
       WrappedComponent.name})`
 
     initialState = {
-      gasEstimateError: false,
+      gasEstimateError: null,
       useCustomGas: false,
-      toAddress: null,
+      destination: this.props.availableDestinations[0].value,
       metAmount: null,
       gasPrice: this.props.client.fromWei(this.props.chainGasPrice, 'gwei'),
       gasLimit: this.props.metDefaultGasLimit,
-      errors: {}
+      feeError: null,
+      errors: {},
+      fee: null
     }
 
     state = this.initialState
 
-    resetForm = () => this.setState(this.initialState)
+    resetForm = () =>
+      this.setState({
+        ...this.initialState,
+        destination: this.props.availableDestinations[0].value
+      })
 
     onInputChange = ({ id, value }) => {
       this.setState(state => ({
@@ -53,54 +65,58 @@ const withSendMETFormState = WrappedComponent => {
       }))
 
       // Estimate gas limit again if parameters changed
-      if (['toAddress', 'metAmount'].includes(id)) this.getGasEstimate()
+      if (['metAmount', 'destination'].includes(id)) this.getEstimates()
     }
 
-    getGasEstimate = debounce(() => {
-      const { metAmount, toAddress } = this.state
+    getEstimates = debounce(() => {
+      const { metAmount } = this.state
 
-      if (
-        !this.props.client.isAddress(toAddress) ||
-        !utils.isWeiable(this.props.client, metAmount)
-      ) {
-        return
+      if (!utils.isWeiable(this.props.client, metAmount)) {
+        return this.setState({ feeError: null, fee: null })
       }
 
+      const value = this.props.client.toWei(utils.sanitize(metAmount))
+
       this.props.client
-        .getTokensGasLimit({
-          value: this.props.client.toWei(utils.sanitize(metAmount)),
-          token: this.props.metTokenAddress,
+        .getPortFees({
+          destinationChain: this.state.destination,
           chain: this.props.activeChain,
           from: this.props.from,
-          to: toAddress
+          to: this.props.from,
+          value
         })
-        .then(({ gasLimit }) =>
+        .then(({ fee, exportGasLimit }) =>
           this.setState({
             gasEstimateError: false,
-            gasLimit: gasLimit.toString()
+            gasLimit: exportGasLimit.toString(),
+            feeError: null,
+            fee
           })
         )
-        .catch(() => this.setState({ gasEstimateError: true }))
+        .catch(err =>
+          this.setState({ gasEstimateError: true, feeError: err.message })
+        )
     }, 500)
 
     onSubmit = password =>
-      this.props.client.sendMet({
+      this.props.client.portMetronome({
+        destinationChain: this.state.destination,
         gasPrice: this.props.client.toWei(this.state.gasPrice, 'gwei'),
-        password,
         walletId: this.props.walletId,
+        password,
         value: this.props.client.toWei(utils.sanitize(this.state.metAmount)),
         chain: this.props.activeChain,
         from: this.props.from,
         gas: this.state.gasLimit,
-        to: this.state.toAddress
+        fee: this.state.fee,
+        to: this.props.from
       })
 
     validate = () => {
-      const { metAmount, toAddress, gasPrice, gasLimit } = this.state
+      const { metAmount, gasPrice, gasLimit } = this.state
       const { client } = this.props
-      const max = client.fromWei(this.props.availableMET)
+      const max = client.fromWei(this.props.availableMet)
       const errors = {
-        ...validators.validateToAddress(client, toAddress),
         ...validators.validateMetAmount(client, metAmount, max),
         ...validators.validateGasPrice(client, gasPrice),
         ...validators.validateGasLimit(client, gasLimit)
@@ -111,26 +127,21 @@ const withSendMETFormState = WrappedComponent => {
     }
 
     onMaxClick = () => {
-      const metAmount = this.props.client.fromWei(this.props.availableMET)
+      const metAmount = this.props.client.fromWei(this.props.availableMet)
       this.onInputChange({ id: 'metAmount', value: metAmount })
     }
 
     render() {
-      const amountFieldsProps = utils.getAmountFieldsProps({
-        metAmount: this.state.metAmount
-      })
-
       return (
         <WrappedComponent
+          sourceDisplayName={this.props.sourceDisplayName}
           onInputChange={this.onInputChange}
           onMaxClick={this.onMaxClick}
           resetForm={this.resetForm}
           onSubmit={this.onSubmit}
+          validate={this.validate}
           {...this.props}
           {...this.state}
-          metPlaceholder={amountFieldsProps.metPlaceholder}
-          metAmount={amountFieldsProps.metAmount}
-          validate={this.validate}
         />
       )
     }
@@ -139,15 +150,18 @@ const withSendMETFormState = WrappedComponent => {
   const mapStateToProps = state => ({
     metDefaultGasLimit: selectors.getActiveChainConfig(state)
       .metDefaultGasLimit,
-    metTokenAddress: selectors.getActiveChainConfig(state).metTokenAddress,
+    availableDestinations: selectors.getPortDestinations(state),
+    sourceDisplayName: selectors.getActiveChainDisplayName(state),
     chainGasPrice: selectors.getChainGasPrice(state),
-    availableMET: selectors.getMetBalanceWei(state),
+    availableMet: selectors.getMetBalanceWei(state),
     activeChain: selectors.getActiveChain(state),
+    chainsById: selectors.getChainsById(state),
     walletId: selectors.getActiveWalletId(state),
+    source: selectors.getActiveChain(state),
     from: selectors.getActiveAddress(state)
   })
 
   return connect(mapStateToProps)(withClient(Container))
 }
 
-export default withSendMETFormState
+export default withPortFormState

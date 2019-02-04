@@ -29,8 +29,8 @@ const withReceiveDrawerState = WrappedComponent => {
       return (
         <WrappedComponent
           copyToClipboard={this.copyToClipboard}
-          copyBtnLabel={this.state.copyBtnLabel}
-          address={this.props.address}
+          {...this.props}
+          {...this.state}
         />
       )
     }

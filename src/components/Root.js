@@ -27,7 +27,11 @@ class Root extends React.Component {
   componentDidMount() {
     this.props.client
       .onInit()
-      .then(({ onboardingComplete }) => {
+      .then(({ onboardingComplete, persistedState, config }) => {
+        this.props.dispatch({
+          type: 'initial-state-received',
+          payload: { ...persistedState, config }
+        })
         this.setState({ onboardingComplete })
       })
       // eslint-disable-next-line no-console

@@ -6,12 +6,12 @@ const initialState = {
 
 // Set connectivity status to 'online' if any of these actions is received
 const CONNECTIVITY_PROOF_ACTIONS = [
-  'mtn-converter-status-updated',
+  'converter-status-updated',
   'auction-status-updated',
   'auction-status-updated',
   'wallet-state-changed',
-  'eth-price-updated',
-  'eth-block'
+  'coin-price-updated',
+  'coin-block'
 ]
 
 const reducer = handleActions(

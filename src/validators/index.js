@@ -14,12 +14,12 @@ function validateAmount(client, amount, propName, max, errors = {}) {
   return errors
 }
 
-export function validateEthAmount(client, ethAmount, max, errors = {}) {
-  return validateAmount(client, ethAmount, 'ethAmount', max, errors)
+export function validateCoinAmount(client, coinAmount, max, errors = {}) {
+  return validateAmount(client, coinAmount, 'coinAmount', max, errors)
 }
 
-export function validateMetAmount(client, mtnAmount, max, errors = {}) {
-  return validateAmount(client, mtnAmount, 'metAmount', max, errors)
+export function validateMetAmount(client, metAmount, max, errors = {}) {
+  return validateAmount(client, metAmount, 'metAmount', max, errors)
 }
 
 export function validateToAddress(client, toAddress, errors = {}) {
@@ -113,10 +113,17 @@ export function validatePasswordCreation(
   if (!password) {
     errors.password = 'Password is required'
   } else if (
-    client.getStringEntropy(password) < config.REQUIRED_PASSWORD_ENTROPY
+    client.getStringEntropy(password) < config.requiredPasswordEntropy
   ) {
     errors.password = 'Password is not strong enough'
   }
 
+  return errors
+}
+
+export function validateUseMinimum(useMinimum, estimate, errors = {}) {
+  if (useMinimum && !estimate) {
+    errors.useMinimum = 'No estimated return. Try again.'
+  }
   return errors
 }

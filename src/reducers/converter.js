@@ -1,4 +1,5 @@
 import { handleActions } from 'redux-actions'
+import get from 'lodash/get'
 
 const initialState = {
   status: null
@@ -6,7 +7,12 @@ const initialState = {
 
 const reducer = handleActions(
   {
-    'mtn-converter-status-updated': (state, { payload }) => ({
+    'initial-state-received': (state, { payload }) => ({
+      ...state,
+      ...get(payload, 'converter', {})
+    }),
+
+    'converter-status-updated': (state, { payload }) => ({
       ...state,
       status: payload
     })

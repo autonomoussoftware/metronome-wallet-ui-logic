@@ -1,51 +1,65 @@
-import * as validators from '../validators'
-import * as selectors from '../selectors'
-import { withClient } from './clientContext'
 import { connect } from 'react-redux'
-import * as utils from '../utils'
 import PropTypes from 'prop-types'
 import debounce from 'lodash/debounce'
 import React from 'react'
 
-const withBuyMETFormState = WrappedComponent => {
+import * as validators from '../validators'
+import * as selectors from '../selectors'
+import { withClient } from './clientContext'
+import * as utils from '../utils'
+
+const withConvertCoinToMETState = WrappedComponent => {
   class Container extends React.Component {
     static propTypes = {
-      metDefaultGasLimit: PropTypes.string.isRequired,
-      tokenRemaining: PropTypes.string.isRequired,
+      coinDefaultGasLimit: PropTypes.string.isRequired,
+      converterPrice: PropTypes.string.isRequired,
       availableCoin: PropTypes.string.isRequired,
       chainGasPrice: PropTypes.string.isRequired,
-      currentPrice: PropTypes.string.isRequired,
       activeChain: PropTypes.string.isRequired,
       coinSymbol: PropTypes.string.isRequired,
       coinPrice: PropTypes.number.isRequired,
       walletId: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
         .isRequired,
       client: PropTypes.shape({
-        getAuctionGasLimit: PropTypes.func.isRequired,
-        buyMetronome: PropTypes.func.isRequired,
+        getConvertCoinEstimate: PropTypes.func.isRequired,
+        getConvertCoinGasLimit: PropTypes.func.isRequired,
+        convertCoin: PropTypes.func.isRequired,
         fromWei: PropTypes.func.isRequired,
-        toWei: PropTypes.func.isRequired,
-        toBN: PropTypes.func.isRequired
+        toWei: PropTypes.func.isRequired
       }).isRequired,
       from: PropTypes.string.isRequired
     }
 
-    static displayName = `withBuyMETFormState(${WrappedComponent.displayName ||
+    static displayName = `withConvertCoinToMETState(${WrappedComponent.displayName ||
       WrappedComponent.name})`
 
     initialState = {
       gasEstimateError: false,
+      estimateError: null,
       useCustomGas: false,
+      useMinimum: true,
       coinAmount: null,
       usdAmount: null,
       gasPrice: this.props.client.fromWei(this.props.chainGasPrice, 'gwei'),
-      gasLimit: this.props.metDefaultGasLimit,
-      errors: {}
+      gasLimit: this.props.coinDefaultGasLimit,
+      estimate: null,
+      errors: {},
+      rate: null
     }
 
     state = this.initialState
 
     resetForm = () => this.setState(this.initialState)
+
+    componentDidUpdate({ converterPrice }, { coinAmount }) {
+      // Recalculate estimate if amount or price changed
+      if (
+        this.props.converterPrice !== converterPrice ||
+        this.state.coinAmount !== coinAmount
+      ) {
+        this.getConversionEstimate()
+      }
+    }
 
     onInputChange = ({ id, value }) => {
       const { coinPrice, client } = this.props
@@ -53,7 +67,12 @@ const withBuyMETFormState = WrappedComponent => {
         ...state,
         ...utils.syncAmounts({ state, coinPrice, id, value, client }),
         gasEstimateError: id === 'gasLimit' ? false : state.gasEstimateError,
-        errors: { ...state.errors, [id]: null },
+        errors: {
+          ...state.errors,
+          [id]: null,
+          useMinimum:
+            id === 'estimate' && value !== null ? null : state.errors.useMinimum
+        },
         [id]: utils.sanitizeInput(value)
       }))
 
@@ -67,25 +86,57 @@ const withBuyMETFormState = WrappedComponent => {
       if (!utils.isWeiable(this.props.client, coinAmount)) return
 
       this.props.client
-        .getAuctionGasLimit({
+        .getConvertCoinGasLimit({
           value: this.props.client.toWei(utils.sanitize(coinAmount)),
           chain: this.props.activeChain,
           from: this.props.from
         })
-        .then(({ gasLimit }) => {
+        .then(({ gasLimit }) =>
           this.setState({
             gasEstimateError: false,
             gasLimit: gasLimit.toString()
           })
-        })
+        )
         .catch(() => this.setState({ gasEstimateError: true }))
     }, 500)
 
+    getConversionEstimate = debounce(() => {
+      const { coinAmount } = this.state
+      const { client } = this.props
+
+      if (
+        !utils.isWeiable(client, coinAmount) ||
+        !utils.isGreaterThanZero(client, coinAmount)
+      ) {
+        return this.setState({ estimateError: null, estimate: null })
+      }
+      client
+        .getConvertCoinEstimate({
+          value: client.toWei(utils.sanitize(coinAmount)),
+          chain: this.props.activeChain
+        })
+        .then(({ result }) => {
+          const rate = utils.getConversionRate(
+            client,
+            result,
+            client.toWei(utils.sanitize(coinAmount))
+          )
+          this.setState({ estimateError: null, estimate: result, rate })
+        })
+        .catch(err => {
+          this.setState({ estimateError: err.message, estimate: null })
+        })
+    }, 500)
+
     onSubmit = password =>
-      this.props.client.buyMetronome({
-        password,
+      this.props.client.convertCoin({
+        minReturn:
+          this.state.useMinimum && typeof this.state.estimate === 'string'
+            ? this.state.estimate
+            : undefined,
         gasPrice: this.props.client.toWei(this.state.gasPrice, 'gwei'),
         walletId: this.props.walletId,
+        password,
         value: this.props.client.toWei(utils.sanitize(this.state.coinAmount)),
         chain: this.props.activeChain,
         from: this.props.from,
@@ -93,13 +144,20 @@ const withBuyMETFormState = WrappedComponent => {
       })
 
     validate = () => {
-      const { coinAmount, gasPrice, gasLimit } = this.state
+      const {
+        useMinimum,
+        coinAmount,
+        gasPrice,
+        gasLimit,
+        estimate
+      } = this.state
       const { client } = this.props
       const max = client.fromWei(this.props.availableCoin)
       const errors = {
         ...validators.validateCoinAmount(client, coinAmount, max),
         ...validators.validateGasPrice(client, gasPrice),
-        ...validators.validateGasLimit(client, gasLimit)
+        ...validators.validateGasLimit(client, gasLimit),
+        ...validators.validateUseMinimum(useMinimum, estimate)
       }
       const hasErrors = Object.keys(errors).length > 0
       if (hasErrors) this.setState({ errors })
@@ -111,28 +169,31 @@ const withBuyMETFormState = WrappedComponent => {
       this.onInputChange({ id: 'coinAmount', value: coinAmount })
     }
 
+    onUseMinimumToggle = () =>
+      this.setState(state => ({
+        ...state,
+        useMinimum: !state.useMinimum,
+        errors: {
+          ...state.errors,
+          useMinimum: null
+        }
+      }))
+
     render() {
       const amountFieldsProps = utils.getAmountFieldsProps({
         coinAmount: this.state.coinAmount,
         usdAmount: this.state.usdAmount
       })
 
-      const expected = utils.getPurchaseEstimate({
-        remaining: this.props.tokenRemaining,
-        amount: this.state.coinAmount,
-        client: this.props.client,
-        rate: this.props.currentPrice
-      })
-
       return (
         <WrappedComponent
+          onUseMinimumToggle={this.onUseMinimumToggle}
           onInputChange={this.onInputChange}
           onMaxClick={this.onMaxClick}
           resetForm={this.resetForm}
           onSubmit={this.onSubmit}
           {...this.props}
           {...this.state}
-          {...expected}
           coinPlaceholder={amountFieldsProps.coinPlaceholder}
           usdPlaceholder={amountFieldsProps.usdPlaceholder}
           coinAmount={amountFieldsProps.coinAmount}
@@ -144,12 +205,11 @@ const withBuyMETFormState = WrappedComponent => {
   }
 
   const mapStateToProps = state => ({
-    metDefaultGasLimit: selectors.getActiveChainConfig(state)
-      .metDefaultGasLimit,
-    tokenRemaining: selectors.getAuctionStatus(state).tokenRemaining,
+    coinDefaultGasLimit: selectors.getActiveChainConfig(state)
+      .coinDefaultGasLimit,
+    converterPrice: selectors.getConverterPrice(state),
     availableCoin: selectors.getCoinBalanceWei(state),
     chainGasPrice: selectors.getChainGasPrice(state),
-    currentPrice: selectors.getAuctionStatus(state).currentPrice,
     activeChain: selectors.getActiveChain(state),
     coinSymbol: selectors.getCoinSymbol(state),
     coinPrice: selectors.getCoinRate(state),
@@ -160,4 +220,4 @@ const withBuyMETFormState = WrappedComponent => {
   return connect(mapStateToProps)(withClient(Container))
 }
 
-export default withBuyMETFormState
+export default withConvertCoinToMETState

@@ -8,12 +8,14 @@ export default {
     light: '#fff',
     copy: '#545454',
     dark: '#323232',
+    darker: '#1d1d1d',
     translucentDark: '#323232EE',
     lightShade: 'rgba(0, 0, 0, 0.1)',
     darkShade,
     darkSuccess: 'rgba(119, 132, 125, 0.68)',
     success: '#45d48d',
     danger: '#d46045',
+    darkDanger: 'rgba(212, 96, 69, 0.12)',
     weak: '#888',
 
     // BACKGROUNDS

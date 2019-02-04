@@ -1,19 +1,21 @@
-import { withClient } from './clientContext'
-import * as selectors from '../selectors'
 import { connect } from 'react-redux'
 import PropTypes from 'prop-types'
 import React from 'react'
 
+import { withClient } from './clientContext'
+import * as selectors from '../selectors'
+
 const withConverterState = WrappedComponent => {
   class Container extends React.Component {
     static propTypes = {
-      convertFeatureStatus: PropTypes.oneOf(['offline', 'no-eth', 'ok'])
+      convertFeatureStatus: PropTypes.oneOf(['offline', 'no-coin', 'ok'])
         .isRequired,
       converterPriceUSD: PropTypes.string.isRequired,
       converterStatus: PropTypes.shape({
-        availableEth: PropTypes.string.isRequired,
+        availableCoin: PropTypes.string.isRequired,
         availableMet: PropTypes.string.isRequired
       }),
+      coinSymbol: PropTypes.string.isRequired,
       client: PropTypes.shape({
         fromWei: PropTypes.func.isRequired
       }).isRequired
@@ -23,13 +25,13 @@ const withConverterState = WrappedComponent => {
       WrappedComponent.name})`
 
     render() {
-      const { convertFeatureStatus } = this.props
+      const { convertFeatureStatus, coinSymbol } = this.props
 
       const convertDisabledReason =
         convertFeatureStatus === 'offline'
           ? "Can't convert while offline"
-          : convertFeatureStatus === 'no-eth'
-            ? 'You need some ETH to pay for conversion gas'
+          : convertFeatureStatus === 'no-coin'
+            ? `You need some ${coinSymbol} to pay for conversion gas`
             : null
 
       return (
@@ -45,7 +47,8 @@ const withConverterState = WrappedComponent => {
   const mapStateToProps = (state, { client }) => ({
     convertFeatureStatus: selectors.convertFeatureStatus(state),
     converterPriceUSD: selectors.getConverterPriceUSD(state, client),
-    converterStatus: selectors.getConverterStatus(state)
+    converterStatus: selectors.getConverterStatus(state),
+    coinSymbol: selectors.getCoinSymbol(state)
   })
 
   return withClient(connect(mapStateToProps)(Container))

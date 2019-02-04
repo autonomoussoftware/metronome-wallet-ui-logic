@@ -1,7 +1,10 @@
-import * as selectors from '../selectors'
 import { connect } from 'react-redux'
+import mapValues from 'lodash/mapValues'
 import PropTypes from 'prop-types'
+import every from 'lodash/every'
 import React from 'react'
+
+import * as selectors from '../selectors'
 
 // Time to wait before updating checklist status (in ms)
 // The idea is to prevent fast-loading checklists which would look like a glitch
@@ -13,57 +16,80 @@ const ON_COMPLETE_DELAY = 20
 const withLoadingState = WrappedComponent => {
   class Container extends React.Component {
     static propTypes = {
-      hasBlockHeight: PropTypes.bool.isRequired,
-      hasEthBalance: PropTypes.bool.isRequired,
-      hasMetBalance: PropTypes.bool.isRequired,
-      hasEthRate: PropTypes.bool.isRequired,
+      chainsStatus: PropTypes.objectOf(
+        PropTypes.shape({
+          hasBlockHeight: PropTypes.bool.isRequired,
+          hasCoinBalance: PropTypes.bool.isRequired,
+          hasMetBalance: PropTypes.bool.isRequired,
+          displayName: PropTypes.string.isRequired,
+          hasCoinRate: PropTypes.bool.isRequired,
+          symbol: PropTypes.string.isRequired
+        })
+      ).isRequired,
       onComplete: PropTypes.func.isRequired
     }
 
     static displayName = `withLoadingState(${WrappedComponent.displayName ||
       WrappedComponent.name})`
 
-    state = {
+    state = mapValues(this.props.chainsStatus, status => ({
+      ...status,
       hasBlockHeight: false,
-      hasEthBalance: false,
+      hasCoinBalance: false,
       hasMetBalance: false,
-      hasEthRate: false
-    }
+      hasCoinRate: false
+    }))
 
     checkFinished = () => {
-      const {
-        hasBlockHeight,
-        hasEthBalance,
-        hasMetBalance,
-        hasEthRate
-      } = this.state
-
-      if (hasBlockHeight && hasEthBalance && hasMetBalance && hasEthRate) {
+      if (every(this.state, every)) {
         clearInterval(this.interval)
         setTimeout(this.props.onComplete, ON_COMPLETE_DELAY)
       }
     }
 
     checkTasks = () => {
-      const {
-        hasBlockHeight,
-        hasEthBalance,
-        hasMetBalance,
-        hasEthRate
-      } = this.state
-
-      if (this.props.hasBlockHeight && !hasBlockHeight) {
-        return this.setState({ hasBlockHeight: true }, this.checkFinished)
-      }
-      if (this.props.hasEthRate && !hasEthRate) {
-        return this.setState({ hasEthRate: true }, this.checkFinished)
-      }
-      if (this.props.hasEthBalance && !hasEthBalance) {
-        return this.setState({ hasEthBalance: true }, this.checkFinished)
-      }
-      if (this.props.hasMetBalance && !hasMetBalance) {
-        return this.setState({ hasMetBalance: true }, this.checkFinished)
-      }
+      mapValues(this.props.chainsStatus, (currentStatus, chainName) => {
+        const prevStatus = this.state[chainName] || {}
+        if (currentStatus.hasBlockHeight && !prevStatus.hasBlockHeight) {
+          return this.setState(
+            state => ({
+              ...state,
+              [chainName]: { ...state[chainName], hasBlockHeight: true }
+            }),
+            this.checkFinished
+          )
+        }
+        if (currentStatus.hasCoinRate && !prevStatus.hasCoinRate) {
+          return this.setState(
+            state => ({
+              ...state,
+              [chainName]: { ...state[chainName], hasCoinRate: true }
+            }),
+            this.checkFinished,
+            this.checkFinished
+          )
+        }
+        if (currentStatus.hasCoinBalance && !prevStatus.hasCoinBalance) {
+          return this.setState(
+            state => ({
+              ...state,
+              [chainName]: { ...state[chainName], hasCoinBalance: true }
+            }),
+            this.checkFinished,
+            this.checkFinished
+          )
+        }
+        if (currentStatus.hasMetBalance && !prevStatus.hasMetBalance) {
+          return this.setState(
+            state => ({
+              ...state,
+              [chainName]: { ...state[chainName], hasMetBalance: true }
+            }),
+            this.checkFinished,
+            this.checkFinished
+          )
+        }
+      })
     }
 
     componentDidMount() {
@@ -75,28 +101,22 @@ const withLoadingState = WrappedComponent => {
     }
 
     render() {
-      return (
-        <WrappedComponent
-          hasBlockHeight={this.state.hasBlockHeight}
-          hasEthBalance={this.state.hasEthBalance}
-          hasMetBalance={this.state.hasMetBalance}
-          hasEthRate={this.state.hasEthRate}
-        />
-      )
+      return <WrappedComponent chainsStatus={this.state} />
     }
   }
 
   const mapStateToProps = state => ({
-    hasBlockHeight: selectors.getBlockHeight(state) !== null,
-    hasEthBalance: selectors.getActiveWalletEthBalance(state) !== null,
-    hasMetBalance: selectors.getActiveWalletMtnBalance(state) !== null,
-    hasEthRate: selectors.getEthRate(state) !== null
+    chainsStatus: selectors.getChainsReadyStatus(state)
   })
 
   const mapDispatchToProps = dispatch => ({
     onComplete: () => dispatch({ type: 'required-data-gathered' })
   })
-  return connect(mapStateToProps, mapDispatchToProps)(Container)
+
+  return connect(
+    mapStateToProps,
+    mapDispatchToProps
+  )(Container)
 }
 
 export default withLoadingState

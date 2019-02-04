@@ -1,9 +1,10 @@
 import { handleActions } from 'redux-actions'
 import mergeWith from 'lodash/mergeWith'
 import unionBy from 'lodash/unionBy'
+import get from 'lodash/get'
 
 const initialState = {
-  isScanningTx: false,
+  syncStatus: 'up-to-date',
   active: null,
   allIds: null,
   byId: null
@@ -11,6 +12,12 @@ const initialState = {
 
 const reducer = handleActions(
   {
+    'initial-state-received': (state, { payload }) => ({
+      ...state,
+      ...get(payload, 'wallets', {}),
+      syncStatus: state.syncStatus
+    }),
+
     'create-wallet': (state, { payload }) => ({
       ...state,
       allIds: [...(state.allIds || []), payload.walletId],
@@ -44,12 +51,12 @@ const reducer = handleActions(
 
     'transactions-scan-started': state => ({
       ...state,
-      isScanningTx: true
+      syncStatus: 'syncing'
     }),
 
-    'transactions-scan-finished': state => ({
+    'transactions-scan-finished': (state, { payload }) => ({
       ...state,
-      isScanningTx: false
+      syncStatus: payload.success ? 'up-to-date' : 'failed'
     })
   },
   initialState
