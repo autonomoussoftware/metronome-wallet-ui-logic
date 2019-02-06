@@ -16,6 +16,7 @@
   ],
   "repository": "autonomoussoftware/metronome-wallet-ui-logic",
   "scripts": {
+    "test": "echo 'All OK!'",
     "check:outdated": "npm-check -i eslint-config-plugin* -i husky",
     "lint": "eslint --cache .",
     "precommit": "npm run lint",
