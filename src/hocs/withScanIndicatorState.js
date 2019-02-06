@@ -24,13 +24,13 @@ const withScanIndicatorState = WrappedComponent => {
     }
 
     render() {
-      const label = !this.props.isOnline
-        ? 'Offline'
-        : this.props.syncStatus === 'syncing'
+      const label = this.props.isOnline
+        ? this.props.syncStatus === 'syncing'
           ? 'Syncing…'
           : this.props.syncStatus === 'failed'
             ? 'Sync failed'
             : 'Up-to-date'
+        : 'Offline'
 
       const tooltip = this.props.isOnline
         ? this.props.syncStatus === 'failed'

@@ -43,6 +43,8 @@ const withOnboardingState = WrappedComponent => {
       this.props.client
         .createMnemonic()
         .then(mnemonic => this.setState({ mnemonic }))
+        // eslint-disable-next-line no-console
+        .catch(() => console.error("Couldn't create mnemonic"))
     }
 
     onTermsAccepted = () => {
@@ -67,10 +69,11 @@ const withOnboardingState = WrappedComponent => {
         } don't match`
       }
       if (Object.keys(errors).length > 0) {
-        return this.setState({
+        this.setState({
           passwordAgain: clearOnError ? '' : passwordAgain,
           errors
         })
+        return
       }
       this.setState({ isPasswordDefined: true })
     }

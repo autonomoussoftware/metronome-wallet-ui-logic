@@ -67,14 +67,16 @@ class Root extends React.Component {
 
     if (onboardingComplete === null) return null
 
+    // eslint-disable-next-line no-negated-condition
     return !onboardingComplete ? (
       <OnboardingComponent onOnboardingCompleted={this.onOnboardingCompleted} />
-    ) : !isSessionActive ? (
+    ) : // eslint-disable-next-line no-negated-condition
+    !isSessionActive ? (
       <LoginComponent onLoginSubmit={this.onLoginSubmit} />
-    ) : !hasEnoughData ? (
-      <LoadingComponent />
-    ) : (
+    ) : hasEnoughData ? (
       <RouterComponent />
+    ) : (
+      <LoadingComponent />
     )
   }
 }

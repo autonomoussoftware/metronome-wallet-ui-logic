@@ -80,7 +80,8 @@ const withConvertMETtoCoinState = WrappedComponent => {
         !utils.isWeiable(client, metAmount) ||
         !utils.isGreaterThanZero(client, metAmount)
       ) {
-        return this.setState({ estimateError: null, estimate: null })
+        this.setState({ estimateError: null, estimate: null })
+        return
       }
       client
         .getConvertMetEstimate({

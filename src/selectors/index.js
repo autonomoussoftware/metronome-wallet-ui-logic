@@ -299,20 +299,20 @@ export const sendFeatureStatus = createSelector(
   getActiveWalletCoinBalance,
   getActiveWalletMetBalance,
   getIsOnline,
-  (coinBalance, MetBalance, isOnline) =>
-    !isOnline
-      ? 'offline'
-      : !utils.hasFunds(coinBalance) && !utils.hasFunds(MetBalance)
+  (coinBalance, metBalance, isOnline) =>
+    isOnline
+      ? !utils.hasFunds(coinBalance) && !utils.hasFunds(metBalance)
         ? 'no-funds'
         : 'ok'
+      : 'offline'
 )
 
 // Returns the status of the "Send Metronome" feature on the active chain
 export const sendMetFeatureStatus = createSelector(
   getActiveWalletMetBalance,
   getIsOnline,
-  (MetBalance, isOnline) =>
-    !isOnline ? 'offline' : !utils.hasFunds(MetBalance) ? 'no-funds' : 'ok'
+  (metBalance, isOnline) =>
+    isOnline ? (utils.hasFunds(metBalance) ? 'ok' : 'no-funds') : 'offline'
 )
 
 // Returns the status of the "Buy Metronome" feature on the active chain
@@ -324,7 +324,7 @@ export const buyFeatureStatus = createSelector(
       auctionStatus &&
       auctionStatus.tokenRemaining &&
       !utils.hasFunds(auctionStatus.tokenRemaining)
-    return !isOnline ? 'offline' : isDepleted ? 'depleted' : 'ok'
+    return isOnline ? (isDepleted ? 'depleted' : 'ok') : 'offline'
   }
 )
 
@@ -333,7 +333,7 @@ export const convertFeatureStatus = createSelector(
   getActiveWalletCoinBalance,
   getIsOnline,
   (coinBalance, isOnline) =>
-    !isOnline ? 'offline' : !utils.hasFunds(coinBalance) ? 'no-coin' : 'ok'
+    isOnline ? (utils.hasFunds(coinBalance) ? 'ok' : 'no-coin') : 'offline'
 )
 
 // Returns the status of the "Port" feature on the active chain
