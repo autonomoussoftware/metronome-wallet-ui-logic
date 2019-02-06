@@ -44,7 +44,7 @@ const withOnboardingState = WrappedComponent => {
         .createMnemonic()
         .then(mnemonic => this.setState({ mnemonic }))
         // eslint-disable-next-line no-console
-        .catch(() => console.error("Couldn't create mnemonic"))
+        .catch(() => console.warn("Couldn't create mnemonic"))
     }
 
     onTermsAccepted = () => {

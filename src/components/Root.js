@@ -35,7 +35,7 @@ class Root extends React.Component {
         this.setState({ onboardingComplete })
       })
       // eslint-disable-next-line no-console
-      .catch(console.error)
+      .catch(console.warn)
   }
 
   onOnboardingCompleted = ({ password, mnemonic }) =>
@@ -46,7 +46,7 @@ class Root extends React.Component {
         this.props.dispatch({ type: 'session-started' })
       })
       // eslint-disable-next-line no-console
-      .catch(console.error)
+      .catch(console.warn)
 
   onLoginSubmit = ({ password }) =>
     this.props.client
