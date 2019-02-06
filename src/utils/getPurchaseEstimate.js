@@ -48,13 +48,16 @@ export function getPurchaseEstimate({ client, amount, rate, remaining }) {
       ? new BigNumber(remaining)
           .multipliedBy(new BigNumber(rate))
           .dividedBy(new BigNumber(client.toWei('1')))
-          .decimalPlaces(18)
+          .decimalPlaces(0)
           .toString(10)
       : null
 
   const excessCoinAmount =
     isValidAmount && excedes
-      ? weiAmount.minus(usedCoinAmount).toString(10)
+      ? weiAmount
+          .minus(usedCoinAmount)
+          .decimalPlaces(0)
+          .toString(10)
       : null
 
   return { expectedMETamount, excedes, usedCoinAmount, excessCoinAmount }
