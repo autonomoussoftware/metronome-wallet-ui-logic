@@ -36,11 +36,10 @@ const reducer = handleActions(
         {},
         state.byId || {},
         payload,
-        (objValue, srcValue, key) => {
-          if (key === 'transactions') {
-            return unionBy(srcValue, objValue, 'transaction.hash')
-          }
-        }
+        (objValue, srcValue, key) =>
+          key === 'transactions'
+            ? unionBy(srcValue, objValue, 'transaction.hash')
+            : undefined
       )
     }),
 

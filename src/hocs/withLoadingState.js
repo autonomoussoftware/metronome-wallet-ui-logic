@@ -51,16 +51,17 @@ const withLoadingState = WrappedComponent => {
       mapValues(this.props.chainsStatus, (currentStatus, chainName) => {
         const prevStatus = this.state[chainName] || {}
         if (currentStatus.hasBlockHeight && !prevStatus.hasBlockHeight) {
-          return this.setState(
+          this.setState(
             state => ({
               ...state,
               [chainName]: { ...state[chainName], hasBlockHeight: true }
             }),
             this.checkFinished
           )
+          return
         }
         if (currentStatus.hasCoinRate && !prevStatus.hasCoinRate) {
-          return this.setState(
+          this.setState(
             state => ({
               ...state,
               [chainName]: { ...state[chainName], hasCoinRate: true }
@@ -68,9 +69,10 @@ const withLoadingState = WrappedComponent => {
             this.checkFinished,
             this.checkFinished
           )
+          return
         }
         if (currentStatus.hasCoinBalance && !prevStatus.hasCoinBalance) {
-          return this.setState(
+          this.setState(
             state => ({
               ...state,
               [chainName]: { ...state[chainName], hasCoinBalance: true }
@@ -78,9 +80,10 @@ const withLoadingState = WrappedComponent => {
             this.checkFinished,
             this.checkFinished
           )
+          return
         }
         if (currentStatus.hasMetBalance && !prevStatus.hasMetBalance) {
-          return this.setState(
+          this.setState(
             state => ({
               ...state,
               [chainName]: { ...state[chainName], hasMetBalance: true }

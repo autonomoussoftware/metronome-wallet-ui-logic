@@ -72,7 +72,8 @@ const withPortFormState = WrappedComponent => {
       const { metAmount } = this.state
 
       if (!utils.isWeiable(this.props.client, metAmount)) {
-        return this.setState({ feeError: null, fee: null })
+        this.setState({ feeError: null, fee: null })
+        return
       }
 
       const value = this.props.client.toWei(utils.sanitize(metAmount))
