@@ -2,7 +2,10 @@ import { handleActions } from 'redux-actions'
 import get from 'lodash/get'
 
 const initialState = {
-  isConnected: null,
+  bestBlockTimestamp: null,
+  isIndexerConnected: null,
+  isWeb3Connected: null,
+  rateLastUpdated: null,
   gasPrice: null,
   height: -1,
   rate: null
@@ -10,9 +13,14 @@ const initialState = {
 
 const reducer = handleActions(
   {
+    'indexer-connection-status-changed': (state, { payload }) => ({
+      ...state,
+      isIndexerConnected: payload.connected
+    }),
+
     'web3-connection-status-changed': (state, { payload }) => ({
       ...state,
-      isConnected: payload.connected
+      isWeb3Connected: payload.connected
     }),
 
     'initial-state-received': (state, { payload }) => ({
@@ -24,11 +32,13 @@ const reducer = handleActions(
 
     'coin-block': (state, { payload }) => ({
       ...state,
+      bestBlockTimestamp: payload.timestamp,
       height: payload.number
     }),
 
     'coin-price-updated': (state, { payload }) => ({
       ...state,
+      rateLastUpdated: parseInt(Date.now() / 1000, 10),
       rate: payload.price
     }),
 

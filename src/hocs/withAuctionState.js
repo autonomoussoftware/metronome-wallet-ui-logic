@@ -16,6 +16,7 @@ const withAuctionState = WrappedComponent => {
         currentPrice: PropTypes.string.isRequired,
         genesisTime: PropTypes.number.isRequired
       }),
+      lastUpdated: PropTypes.number,
       client: PropTypes.shape({
         fromWei: PropTypes.func.isRequired
       }).isRequired
@@ -57,7 +58,8 @@ const withAuctionState = WrappedComponent => {
   const mapStateToProps = (state, { client }) => ({
     buyFeatureStatus: selectors.buyFeatureStatus(state),
     auctionPriceUSD: selectors.getAuctionPriceUSD(state, client),
-    auctionStatus: selectors.getAuctionStatus(state)
+    auctionStatus: selectors.getAuctionStatus(state),
+    lastUpdated: selectors.getAuctionLastUpdated(state)
   })
 
   return withClient(connect(mapStateToProps)(Container))

@@ -15,6 +15,7 @@ const withConverterState = WrappedComponent => {
         availableCoin: PropTypes.string.isRequired,
         availableMet: PropTypes.string.isRequired
       }),
+      lastUpdated: PropTypes.number,
       coinSymbol: PropTypes.string.isRequired,
       client: PropTypes.shape({
         fromWei: PropTypes.func.isRequired
@@ -48,6 +49,7 @@ const withConverterState = WrappedComponent => {
     convertFeatureStatus: selectors.convertFeatureStatus(state),
     converterPriceUSD: selectors.getConverterPriceUSD(state, client),
     converterStatus: selectors.getConverterStatus(state),
+    lastUpdated: selectors.getConverterLastUpdated(state),
     coinSymbol: selectors.getCoinSymbol(state)
   })
 

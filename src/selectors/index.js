@@ -156,6 +156,12 @@ export const getAuction = createSelector(
   activeChain => activeChain.auction
 )
 
+// Returns the timestamp of most recent auction status received
+export const getAuctionLastUpdated = createSelector(
+  getAuction,
+  auction => auction.lastUpdated
+)
+
 // Returns the auction status on the active chain
 export const getAuctionStatus = createSelector(
   getAuction,
@@ -188,6 +194,12 @@ export const getAuctionPriceUSD = createSelector(
 export const getConverter = createSelector(
   getActiveChainData,
   activeChain => activeChain.converter
+)
+
+// Returns the timestamp of most recent converter status received
+export const getConverterLastUpdated = createSelector(
+  getConverter,
+  converter => converter.lastUpdated
 )
 
 // Returns the converter status on the active chain
@@ -236,9 +248,17 @@ export const getChainGasPrice = createSelector(
 
 // Returns the active chain connection status
 export const getChainConnectionStatus = createSelector(
-  getActiveChainConfig,
+  getActiveChain,
   getChainMeta,
-  (chainConfig, chainMeta) => chainMeta.isConnected
+  (activeChain, chainMeta) => (activeChain ? chainMeta.isWeb3Connected : null)
+)
+
+// Returns the indexer connection status
+export const getIndexerConnectionStatus = createSelector(
+  getActiveChain,
+  getChainMeta,
+  (activeChain, chainMeta) =>
+    activeChain ? chainMeta.isIndexerConnected : null
 )
 
 // Returns the amount of confirmations for a given transaction
