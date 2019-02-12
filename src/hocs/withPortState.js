@@ -8,8 +8,12 @@ import * as selectors from '../selectors'
 const withPortState = WrappedComponent => {
   class Container extends React.Component {
     static propTypes = {
-      portFeatureStatus: PropTypes.oneOf(['offline', 'no-coin', 'ok'])
-        .isRequired,
+      portFeatureStatus: PropTypes.oneOf([
+        'no-multichain',
+        'offline',
+        'no-coin',
+        'ok'
+      ]).isRequired,
       failedImports: PropTypes.array.isRequired,
       coinSymbol: PropTypes.string.isRequired,
       client: PropTypes.shape({
@@ -46,15 +50,20 @@ const withPortState = WrappedComponent => {
       const { portFeatureStatus, coinSymbol } = this.props
 
       const portDisabledReason =
-        portFeatureStatus === 'offline'
-          ? "Can't port while offline"
-          : portFeatureStatus === 'no-coin'
-            ? `You need some ${coinSymbol} to pay for port gas`
-            : null
+        portFeatureStatus === 'no-multichain'
+          ? 'This wallet has only one enabled chain'
+          : portFeatureStatus === 'offline'
+            ? "Can't port while offline"
+            : portFeatureStatus === 'no-coin'
+              ? `You need some ${coinSymbol} to pay for port gas`
+              : portFeatureStatus === 'no-met'
+                ? 'You need some MET to port'
+                : null
 
       return (
         <WrappedComponent
           portDisabledReason={portDisabledReason}
+          shouldRenderForm={portFeatureStatus !== 'no-multichain'}
           portDisabled={portFeatureStatus !== 'ok'}
           onRetry={this.onRetry}
           {...this.props}

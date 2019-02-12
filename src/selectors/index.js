@@ -357,7 +357,22 @@ export const convertFeatureStatus = createSelector(
 )
 
 // Returns the status of the "Port" feature on the active chain
-export const portFeatureStatus = () => 'ok'
+export const portFeatureStatus = createSelector(
+  getActiveWalletCoinBalance,
+  getActiveWalletMetBalance,
+  getIsOnline,
+  getConfig,
+  (coinBalance, metBalance, isOnline, config) =>
+    config.enabledChains.length > 0
+      ? isOnline
+        ? utils.hasFunds(coinBalance)
+          ? utils.hasFunds(metBalance)
+            ? 'ok'
+            : 'no-met'
+          : 'no-coin'
+        : 'offline'
+      : 'no-multichain'
+)
 
 // Returns an array of ongoing imports with not enough validations yet
 export const getPendingImports = createSelector(getActiveChain, () => [])
