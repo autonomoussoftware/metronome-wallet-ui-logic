@@ -390,7 +390,7 @@ export const getFailedImports = createSelector(
     const allTx = flatMap(chainsById, ({ wallets }, chainName) =>
       flatMap(wallets.byId, ({ addresses }) =>
         flatMap(addresses, ({ transactions }) =>
-          transactions.map(t => ({
+          (transactions || []).map(t => ({
             ...t,
             originChain: config.chains[chainName].symbol
           }))
