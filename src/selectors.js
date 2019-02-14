@@ -4,7 +4,7 @@ import flatMap from 'lodash/flatMap'
 import sortBy from 'lodash/sortBy'
 import get from 'lodash/get'
 
-import * as utils from '../utils'
+import * as utils from './utils'
 
 // Returns the "chains" state branch
 export const getChains = state => state.chains
@@ -251,6 +251,14 @@ export const getChainConnectionStatus = createSelector(
   getActiveChain,
   getChainMeta,
   (activeChain, chainMeta) => (activeChain ? chainMeta.isWeb3Connected : null)
+)
+
+// Returns the explorer URL for a specific transaction
+export const getExplorerUrl = createSelector(
+  getActiveChainConfig,
+  (_, props) => props.hash,
+  (config, hash) =>
+    config.explorerUrl ? config.explorerUrl.replace('{{hash}}', hash) : '#'
 )
 
 // Returns the indexer connection status

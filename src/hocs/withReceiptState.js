@@ -10,12 +10,13 @@ const withReceiptState = WrappedComponent => {
     static propTypes = {
       confirmations: PropTypes.number.isRequired,
       activeChain: PropTypes.string.isRequired,
+      explorerUrl: PropTypes.string.isRequired,
       coinSymbol: PropTypes.string.isRequired,
       address: PropTypes.string.isRequired,
       client: PropTypes.shape({
-        onExplorerLinkClick: PropTypes.func.isRequired,
         refreshTransaction: PropTypes.func.isRequired,
-        copyToClipboard: PropTypes.func.isRequired
+        copyToClipboard: PropTypes.func.isRequired,
+        onLinkClick: PropTypes.func.isRequired
       }).isRequired,
       hash: PropTypes.string,
       tx: PropTypes.object.isRequired
@@ -53,10 +54,13 @@ const withReceiptState = WrappedComponent => {
         )
     }
 
+    onExplorerLinkClick = () =>
+      this.props.client.onLinkClick(this.props.explorerUrl)
+
     render() {
       return (
         <WrappedComponent
-          onExplorerLinkClick={this.props.client.onExplorerLinkClick}
+          onExplorerLinkClick={this.onExplorerLinkClick}
           onRefreshRequest={this.onRefreshRequest}
           copyToClipboard={this.copyToClipboard}
           isPending={utils.isPending(this.props.tx, this.props.confirmations)}
@@ -73,6 +77,7 @@ const withReceiptState = WrappedComponent => {
 
     return {
       confirmations: selectors.getTxConfirmations(state, { tx }),
+      explorerUrl: selectors.getExplorerUrl(state, { hash }),
       activeChain: selectors.getActiveChain(state),
       coinSymbol: selectors.getCoinSymbol(state),
       address: selectors.getActiveAddress(state),
