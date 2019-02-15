@@ -12,6 +12,7 @@ const withPortState = WrappedComponent => {
         'no-multichain',
         'offline',
         'no-coin',
+        'no-met',
         'ok'
       ]).isRequired,
       failedImports: PropTypes.array.isRequired,
