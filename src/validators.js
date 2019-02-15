@@ -1,5 +1,5 @@
 /* eslint-disable max-params */
-import { isWeiable, isHexable, sanitize, sanitizeMnemonic } from '../utils'
+import { isWeiable, isHexable, sanitize, sanitizeMnemonic } from './utils'
 
 function validateAmount(client, amount, propName, max, errors = {}) {
   if (!amount) {

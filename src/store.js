@@ -1,5 +1,6 @@
 import { createStore as reduxCreateStore } from 'redux'
-import reducer from '../reducers'
+
+import reducer from './reducers'
 
 export { Provider } from 'react-redux'
 
