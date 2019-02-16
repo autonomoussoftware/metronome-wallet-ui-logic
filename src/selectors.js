@@ -382,6 +382,21 @@ export const portFeatureStatus = createSelector(
       : 'no-multichain'
 )
 
+// Returns the status of the "Retry Import" feature on the active chain
+export const retryImportFeatureStatus = createSelector(
+  getActiveWalletCoinBalance,
+  getIsOnline,
+  getConfig,
+  (coinBalance, isOnline, config) =>
+    config.enabledChains.length > 0
+      ? isOnline
+        ? utils.hasFunds(coinBalance)
+          ? 'ok'
+          : 'no-coin'
+        : 'offline'
+      : 'no-multichain'
+)
+
 // Returns an array of ongoing imports with not enough validations yet
 export const getPendingImports = createSelector(getActiveChain, () => [])
 
@@ -435,8 +450,8 @@ export const getFailedImports = createSelector(
 
     return allTx.filter(isFailedImport).map(t => ({
       originChain: t.originChain,
-      receipt: get(t, 'receipt', {}),
-      meta: get(t, 'meta.metronome.export', {})
+      from: get(t, 'receipt.from', ''),
+      ...get(t, 'meta.metronome.export', {})
     }))
   }
 )
