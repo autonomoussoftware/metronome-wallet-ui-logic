@@ -436,8 +436,11 @@ export const getFailedImports = createSelector(
       const wasImportRequested =
         (activeAddressData.transactions || []).findIndex(
           transaction =>
-            get(transaction, 'meta.metronome.importRequest.burnHash', null) ===
-            burnHash
+            get(
+              transaction,
+              'meta.metronome.importRequest.currentBurnHash',
+              null
+            ) === burnHash
         ) > -1
 
       return (
