@@ -29,6 +29,13 @@ function isImportRequestTransaction(rawTx) {
   return get(rawTx.meta, 'metronome.importRequest', false)
 }
 
+function isAttestation(rawTx) {
+  return (
+    get(rawTx.meta, 'metronome.attestation', false) &&
+    !get(rawTx.meta, 'metronome.import', false)
+  )
+}
+
 function isImportTransaction(rawTx) {
   return get(rawTx.meta, 'metronome.import', false)
 }
@@ -45,6 +52,7 @@ function getTxType(rawTx, tokenData, myAddress) {
   if (isExportTransaction(rawTx)) return 'exported'
   if (isSendTransaction(rawTx, tokenData, myAddress)) return 'sent'
   if (isReceiveTransaction(rawTx, tokenData, myAddress)) return 'received'
+  if (isAttestation(rawTx)) return 'attestation'
   return 'unknown'
 }
 
@@ -74,6 +82,12 @@ function getValue(rawTx, tokenData, txType) {
         : txType === 'imported'
           ? get(rawTx, ['meta', 'metronome', 'import', 'value'], null)
           : rawTx.transaction.value
+}
+
+function getIsAttestationValid(rawTx, txType) {
+  return txType === 'attestation' || txType === 'import'
+    ? get(rawTx, ['meta', 'metronome', 'attestation', 'isValid'], false)
+    : null
 }
 
 function getCoinSpentInAuction(rawTx, txType) {
@@ -165,7 +179,10 @@ function getBlockNumber(rawTx) {
 }
 
 function getImportedFrom(rawTx) {
-  return get(rawTx, ['meta', 'metronome', 'importRequest', 'originChain'], '')
+  return (
+    get(rawTx, ['meta', 'metronome', 'importRequest', 'originChain'], '') ||
+    get(rawTx, ['meta', 'metronome', 'import', 'originChain'], '')
+  )
 }
 
 function getExportedTo(rawTx) {
@@ -175,6 +192,7 @@ function getExportedTo(rawTx) {
 function getPortFee(rawTx) {
   return (
     get(rawTx, ['meta', 'metronome', 'importRequest', 'fee'], null) ||
+    get(rawTx, ['meta', 'metronome', 'import', 'fee'], null) ||
     get(rawTx, ['meta', 'metronome', 'export', 'fee'], null)
   )
 }
@@ -182,6 +200,7 @@ function getPortFee(rawTx) {
 function getPortDestinationAddress(rawTx) {
   return (
     get(rawTx, ['meta', 'metronome', 'importRequest', 'to'], null) ||
+    get(rawTx, ['meta', 'metronome', 'import', 'to'], null) ||
     get(rawTx, ['meta', 'metronome', 'export', 'to'], null)
   )
 }
@@ -189,6 +208,8 @@ function getPortDestinationAddress(rawTx) {
 function getPortBurnHash(rawTx) {
   return (
     get(rawTx, ['meta', 'metronome', 'export', 'currentBurnHash'], null) ||
+    get(rawTx, ['meta', 'metronome', 'import', 'currentBurnHash'], null) ||
+    get(rawTx, ['meta', 'metronome', 'attestation', 'currentBurnHash'], null) ||
     get(rawTx, ['meta', 'metronome', 'importRequest', 'currentBurnHash'], null)
   )
 }
@@ -218,6 +239,7 @@ export const createTransactionParser = myAddress => rawTx => {
     metBoughtInAuction: getMetBoughtInAuction(rawTx, tokenData, txType),
     contractCallFailed: getContractCallFailed(rawTx),
     coinSpentInAuction: getCoinSpentInAuction(rawTx, txType),
+    isAttestationValid: getIsAttestationValid(rawTx, txType),
     isCancelApproval: getIsCancelApproval(tokenData),
     approvedValue: getApprovedValue(tokenData),
     formattedTime: getFormattedTime(timestamp),
@@ -238,6 +260,7 @@ export const createTransactionParser = myAddress => rawTx => {
     value: getValue(rawTx, tokenData, txType),
     from: getFrom(rawTx, tokenData, txType),
     hash: getTransactionHash(rawTx),
+    meta: rawTx.meta,
     to: getTo(rawTx, tokenData, txType)
   }
 }

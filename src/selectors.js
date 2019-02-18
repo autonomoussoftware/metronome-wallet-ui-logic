@@ -239,6 +239,12 @@ export const getBlockHeight = createSelector(
   chainMeta => chainMeta.height
 )
 
+// Returns the active chain attestation threshold
+export const getAttestationThreshold = createSelector(
+  getChainMeta,
+  chainMeta => chainMeta.attestationThreshold
+)
+
 // Returns the active chain current gas price
 export const getChainGasPrice = createSelector(
   getActiveChainConfig,
@@ -296,6 +302,7 @@ export const getActiveWalletTransactions = createSelector(
     ])
       .reverse()
       .map(transactionParser)
+      .filter(({ txType }) => txType !== 'attestation')
   }
 )
 
