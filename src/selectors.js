@@ -404,7 +404,36 @@ export const retryImportFeatureStatus = createSelector(
 )
 
 // Returns an array of ongoing imports with not enough validations yet
-export const getPendingImports = createSelector(getActiveChain, () => [])
+export const getOngoingImports = createSelector(
+  getActiveWalletTransactions,
+  transactions =>
+    transactions
+      // get all import requests that are not already imported
+      .filter(
+        ({ txType, portBurnHash }) =>
+          txType === 'import-requested' &&
+          transactions.findIndex(
+            tx => tx.txType === 'imported' && portBurnHash === tx.portBurnHash
+          ) === -1
+      )
+      // add the count for all their validations and refutations
+      .map(tx => {
+        const attestations = transactions.filter(
+          ({ txType, portBurnHash }) =>
+            (txType === 'attestation' || txType === 'imported') &&
+            portBurnHash === tx.portBurnHash
+        )
+        return {
+          attestedCount: attestations.filter(
+            ({ isAttestationValid }) => isAttestationValid
+          ).length,
+          refutedCount: attestations.filter(
+            ({ isAttestationValid }) => !isAttestationValid
+          ).length,
+          ...tx
+        }
+      })
+)
 
 // Returns an array of exports that lack an import operation
 export const getFailedImports = createSelector(

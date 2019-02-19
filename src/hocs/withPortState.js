@@ -20,6 +20,7 @@ const withPortState = WrappedComponent => {
         'no-met',
         'ok'
       ]).isRequired,
+      attestationThreshold: PropTypes.number.isRequired,
       failedImports: PropTypes.array.isRequired,
       coinSymbol: PropTypes.string.isRequired
     }
@@ -69,8 +70,9 @@ const withPortState = WrappedComponent => {
 
   const mapStateToProps = state => ({
     retryImportFeatureStatus: selectors.retryImportFeatureStatus(state),
+    attestationThreshold: selectors.getAttestationThreshold(state),
     portFeatureStatus: selectors.portFeatureStatus(state),
-    pendingImports: selectors.getPendingImports(state),
+    ongoingImports: selectors.getOngoingImports(state),
     failedImports: selectors.getFailedImports(state),
     coinSymbol: selectors.getCoinSymbol(state)
   })

@@ -2,6 +2,7 @@ import { handleActions } from 'redux-actions'
 import get from 'lodash/get'
 
 const initialState = {
+  attestationThreshold: null,
   bestBlockTimestamp: null,
   isIndexerConnected: null,
   isWeb3Connected: null,
@@ -45,6 +46,11 @@ const reducer = handleActions(
     'gas-price-updated': (state, { payload }) => ({
       ...state,
       gasPrice: payload
+    }),
+
+    'attestation-threshold-updated': (state, { payload }) => ({
+      ...state,
+      attestationThreshold: payload.threshold
     }),
 
     'blockchain-set': (state, { payload }) => ({
