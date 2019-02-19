@@ -60,7 +60,9 @@ const withRetryImportFormState = WrappedComponent => {
     }
 
     componentDidUpdate(prevProps) {
-      if (!prevProps.importData && this.props.importData) {
+      const nextHash = get(this.props, 'importData.currentBurnHash', '')
+      const prevHash = get(prevProps, 'importData.currentBurnHash', '')
+      if (prevHash !== nextHash) {
         this.getGasEstimate()
       }
     }
