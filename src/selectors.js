@@ -302,7 +302,6 @@ export const getActiveWalletTransactions = createSelector(
     ])
       .reverse()
       .map(transactionParser)
-      .filter(({ txType }) => txType !== 'attestation')
   }
 )
 
