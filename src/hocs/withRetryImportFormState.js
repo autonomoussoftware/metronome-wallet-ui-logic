@@ -52,6 +52,12 @@ const withRetryImportFormState = WrappedComponent => {
       }))
     }
 
+    componentDidUpdate(prevProps) {
+      if (!prevProps.importData && this.props.importData) {
+        this.getGasEstimate()
+      }
+    }
+
     getGasEstimate = debounce(() => {
       this.props.client
         .getImportGasLimit({}) // TODO: complete with required params
