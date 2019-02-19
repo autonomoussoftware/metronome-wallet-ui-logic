@@ -1,16 +1,23 @@
 import { connect } from 'react-redux'
 import PropTypes from 'prop-types'
 import debounce from 'lodash/debounce'
+import moment from 'moment'
 import React from 'react'
+import get from 'lodash/get'
 
 import * as validators from '../validators'
-import * as selectors from '../selectors'
 import { withClient } from './clientContext'
+import * as selectors from '../selectors'
 import * as utils from '../utils'
 
 const withRetryImportFormState = WrappedComponent => {
   class Container extends React.Component {
     static propTypes = {
+      chainsConfigBySymbol: PropTypes.objectOf(
+        PropTypes.shape({
+          displayName: PropTypes.string.isRequired
+        })
+      ).isRequired,
       metDefaultGasLimit: PropTypes.string.isRequired,
       activeChainConfig: PropTypes.shape({
         metTokenAddress: PropTypes.string.isRequired
@@ -60,7 +67,11 @@ const withRetryImportFormState = WrappedComponent => {
 
     getGasEstimate = debounce(() => {
       this.props.client
-        .getImportGasLimit({}) // TODO: complete with required params
+        .getImportGasLimit({
+          ...this.props.importData,
+          destinationMetAddress: this.props.activeChainConfig.metTokenAddress,
+          chain: this.props.activeChain
+        })
         .then(({ gasLimit }) =>
           this.setState({
             gasEstimateError: false,
@@ -94,13 +105,38 @@ const withRetryImportFormState = WrappedComponent => {
     }
 
     render() {
+      const { importData, chainsConfigBySymbol, ...otherProps } = this.props
+
+      const destinationChain = get(importData, 'destinationChain', '')
+      const originChain = get(importData, 'originChain', '')
+      const destinationDisplayName = get(
+        chainsConfigBySymbol,
+        [destinationChain, 'displayName'],
+        ''
+      )
+      const originDisplayName = get(
+        chainsConfigBySymbol,
+        [originChain, 'displayName'],
+        ''
+      )
+      const timestamp = get(importData, 'blockTimestamp', '')
+      const formattedTime = timestamp
+        ? moment.unix(timestamp).format('LLLL')
+        : ''
+
       return (
         <WrappedComponent
+          destinationDisplayName={destinationDisplayName}
+          originDisplayName={originDisplayName}
           onInputChange={this.onInputChange}
+          formattedTime={formattedTime}
           resetForm={this.resetForm}
+          timestamp={parseInt(timestamp, 10)}
           onSubmit={this.onSubmit}
           validate={this.validate}
-          {...this.props}
+          value={importData ? importData.value : ''}
+          fee={importData ? importData.fee : ''}
+          {...otherProps}
           {...this.state}
         />
       )
@@ -108,6 +144,7 @@ const withRetryImportFormState = WrappedComponent => {
   }
 
   const mapStateToProps = state => ({
+    chainsConfigBySymbol: selectors.getChainsConfigBySymbol(state),
     metDefaultGasLimit: selectors.getActiveChainConfig(state)
       .metDefaultGasLimit,
     activeChainConfig: selectors.getActiveChainConfig(state),

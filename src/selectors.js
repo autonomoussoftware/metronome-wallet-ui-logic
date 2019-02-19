@@ -41,6 +41,17 @@ export const getActiveChainDisplayName = createSelector(
   ({ displayName }) => displayName
 )
 
+// Returns a map of type { [coinSymbol]: chainConfig }
+// Useful for accessing fields like chain displayName when you only have the,
+// chain coin symbol e.g. while parsing import/export metadata
+export const getChainsConfigBySymbol = createSelector(getConfig, config =>
+  Object.keys(config.chains).reduce((acc, chainId) => {
+    const chainConfig = config.chains[chainId]
+    acc[chainConfig.symbol] = { ...chainConfig, id: chainConfig }
+    return acc
+  }, {})
+)
+
 // Returns the "connectivity" state branch
 export const getConnectivity = state => state.connectivity
 
