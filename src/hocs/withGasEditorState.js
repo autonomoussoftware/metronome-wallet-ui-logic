@@ -4,6 +4,7 @@ import React from 'react'
 
 import { withClient } from './clientContext'
 import * as selectors from '../selectors'
+import * as utils from '../utils'
 
 const withGasEditorState = WrappedComponent => {
   class Container extends React.Component {
@@ -55,7 +56,13 @@ const withGasEditorState = WrappedComponent => {
         payload: gasPrice,
         chain: this.props.activeChain
       })
-      if (!this._isMounted) return
+      if (
+        !this._isMounted ||
+        // Parity may return 0 as gasPrice if latests blocks are empty
+        !utils.isGreaterThanZero(this.props.client, gasPrice)
+      ) {
+        return
+      }
       this.setState({ priceError: false })
       this.props.onInputChange({
         id: 'gasPrice',

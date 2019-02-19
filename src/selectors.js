@@ -249,7 +249,11 @@ export const getAttestationThreshold = createSelector(
 export const getChainGasPrice = createSelector(
   getActiveChainConfig,
   getChainMeta,
-  (chainConfig, chainMeta) => chainMeta.gasPrice || chainConfig.defaultGasPrice
+  (chainConfig, chainMeta) =>
+    // Parity may return 0 as gasPrice if latests blocks are empty
+    !chainMeta.gasPrice || parseInt(chainMeta.gasPrice, 10) <= 0
+      ? chainConfig.defaultGasPrice
+      : chainMeta.gasPrice
 )
 
 // Returns the active chain connection status
