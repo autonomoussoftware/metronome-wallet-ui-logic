@@ -1,6 +1,7 @@
 import { createSelector } from 'reselect'
 import mapValues from 'lodash/mapValues'
 import flatMap from 'lodash/flatMap'
+import uniqBy from 'lodash/uniqBy'
 import sortBy from 'lodash/sortBy'
 import get from 'lodash/get'
 
@@ -418,11 +419,28 @@ export const retryImportFeatureStatus = createSelector(
       : 'no-multichain'
 )
 
+export const getMergedTransactions = createSelector(
+  getChainsById,
+  getConfig,
+  (chainsById, config) =>
+    flatMap(chainsById, ({ wallets }, chainName) =>
+      flatMap(wallets.byId, ({ addresses }) =>
+        flatMap(addresses, ({ transactions }) =>
+          (transactions || []).map(t => ({
+            ...t,
+            originChain: config.chains[chainName].symbol
+          }))
+        )
+      )
+    )
+)
+
 // Returns an array of ongoing imports with not enough validations yet
 export const getOngoingImports = createSelector(
   getActiveWalletTransactions,
-  transactions =>
-    transactions
+  getMergedTransactions,
+  (transactions, allTx) =>
+    uniqBy(transactions, ({ portBurnHash }) => portBurnHash)
       // get all import requests that are not already imported
       .filter(
         ({ txType, portBurnHash }) =>
@@ -438,6 +456,11 @@ export const getOngoingImports = createSelector(
             (txType === 'attestation' || txType === 'imported') &&
             portBurnHash === tx.portBurnHash
         )
+        const exportTx = allTx.find(
+          globalTx =>
+            get(globalTx, 'meta.metronome.export.currentBurnHash', false) ===
+            tx.portBurnHash
+        )
         return {
           attestedCount: attestations.filter(
             ({ isAttestationValid }) => isAttestationValid
@@ -445,32 +468,20 @@ export const getOngoingImports = createSelector(
           refutedCount: attestations.filter(
             ({ isAttestationValid }) => !isAttestationValid
           ).length,
-          ...tx
+          ...tx,
+          ...get(exportTx, 'meta.metronome.export', {}),
+          originChain: get(exportTx, 'originChain')
         }
       })
 )
 
 // Returns an array of exports that lack an import operation
 export const getFailedImports = createSelector(
+  getMergedTransactions,
   getActiveAddressData,
   getActiveAddress,
-  getChainsById,
   getCoinSymbol,
-  getConfig,
-  // eslint-disable-next-line max-params
-  (activeAddressData, activeAddress, chainsById, coinSymbol, config) => {
-    // combine all txs, from all addresses, from all wallets, from all chains
-    const allTx = flatMap(chainsById, ({ wallets }, chainName) =>
-      flatMap(wallets.byId, ({ addresses }) =>
-        flatMap(addresses, ({ transactions }) =>
-          (transactions || []).map(t => ({
-            ...t,
-            originChain: config.chains[chainName].symbol
-          }))
-        )
-      )
-    )
-
+  (allTx, activeAddressData, activeAddress, coinSymbol) => {
     // keep only export transactions with active chain as destination
     function isFailedImport(tx) {
       const isExport = get(tx, 'meta.metronome.export', false)
