@@ -53,6 +53,13 @@ export const getChainsConfigBySymbol = createSelector(getConfig, config =>
   }, {})
 )
 
+// Return if wallet is configured to be used with more than one chain.
+// Useful for hiding UI elements that only make sense in multi-chain scenarios
+export const getIsMultiChain = createSelector(
+  getConfig,
+  config => (config.enabledChains || []).length > 1
+)
+
 // Returns the "connectivity" state branch
 export const getConnectivity = state => state.connectivity
 

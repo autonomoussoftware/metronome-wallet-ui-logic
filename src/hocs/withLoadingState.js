@@ -16,6 +16,7 @@ const ON_COMPLETE_DELAY = 20
 const withLoadingState = WrappedComponent => {
   class Container extends React.Component {
     static propTypes = {
+      isMultiChain: PropTypes.bool.isRequired,
       chainsStatus: PropTypes.objectOf(
         PropTypes.shape({
           hasBlockHeight: PropTypes.bool.isRequired,
@@ -104,7 +105,12 @@ const withLoadingState = WrappedComponent => {
     }
 
     render() {
-      return <WrappedComponent chainsStatus={this.state} />
+      return (
+        <WrappedComponent
+          isMultiChain={this.props.isMultiChain}
+          chainsStatus={this.state}
+        />
+      )
     }
   }
 

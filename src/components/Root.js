@@ -12,6 +12,7 @@ class Root extends React.Component {
     isSessionActive: PropTypes.bool.isRequired,
     LoginComponent: PropTypes.func.isRequired,
     hasEnoughData: PropTypes.bool.isRequired,
+    isMultiChain: PropTypes.bool.isRequired,
     dispatch: PropTypes.func.isRequired,
     client: PropTypes.shape({
       onOnboardingCompleted: PropTypes.func.isRequired,
@@ -60,7 +61,8 @@ class Root extends React.Component {
       RouterComponent,
       isSessionActive,
       LoginComponent,
-      hasEnoughData
+      hasEnoughData,
+      isMultiChain
     } = this.props
 
     const { onboardingComplete } = this.state
@@ -74,16 +76,17 @@ class Root extends React.Component {
     !isSessionActive ? (
       <LoginComponent onLoginSubmit={this.onLoginSubmit} />
     ) : hasEnoughData ? (
-      <RouterComponent />
+      <RouterComponent isMultiChain={isMultiChain} />
     ) : (
-      <LoadingComponent />
+      <LoadingComponent isMultiChain={isMultiChain} />
     )
   }
 }
 
 const mapStateToProps = state => ({
   isSessionActive: selectors.isSessionActive(state),
-  hasEnoughData: selectors.hasEnoughData(state)
+  hasEnoughData: selectors.hasEnoughData(state),
+  isMultiChain: selectors.getIsMultiChain(state)
 })
 
 export default connect(mapStateToProps)(withClient(Root))
