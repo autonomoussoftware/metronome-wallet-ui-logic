@@ -1,7 +1,8 @@
-import * as selectors from '../selectors'
 import { connect } from 'react-redux'
 import PropTypes from 'prop-types'
 import React from 'react'
+
+import * as selectors from '../selectors'
 
 const withSendDrawerState = WrappedComponent => {
   class Container extends React.Component {
@@ -13,8 +14,6 @@ const withSendDrawerState = WrappedComponent => {
 
     static displayName = `withSendDrawerState(${WrappedComponent.displayName ||
       WrappedComponent.name})`
-
-    state = { copyBtnLabel: 'Copy to clipboard' }
 
     render() {
       const { sendMetFeatureStatus } = this.props
