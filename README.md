@@ -1,5 +1,7 @@
 # metronome-wallet-ui-logic
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/autonomoussoftware/metronome-wallet-ui-logic.svg)](https://greenkeeper.io/)
+
 This package contains common elements required to develop the UI of an Ethereum Metronome wallet with React and Redux on different platforms.
 
 The intent behind all this is that for each platform we only have to build:
