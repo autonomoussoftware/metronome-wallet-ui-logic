@@ -50,9 +50,9 @@ function getTxType(rawTx, tokenData, myAddress) {
   if (isImportRequestTransaction(rawTx)) return 'import-requested'
   if (isImportTransaction(rawTx)) return 'imported'
   if (isExportTransaction(rawTx)) return 'exported'
+  if (isAttestation(rawTx)) return 'attestation'
   if (isSendTransaction(rawTx, tokenData, myAddress)) return 'sent'
   if (isReceiveTransaction(rawTx, tokenData, myAddress)) return 'received'
-  if (isAttestation(rawTx)) return 'attestation'
   return 'unknown'
 }
 
