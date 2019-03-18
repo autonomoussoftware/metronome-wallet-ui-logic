@@ -7,16 +7,31 @@ import * as selectors from '../selectors'
 
 class FilteredMessage extends React.Component {
   static propTypes = {
+    withDefault: PropTypes.func,
     coinSymbol: PropTypes.string.isRequired,
     children: PropTypes.node.isRequired,
     config: PropTypes.shape({
+      tokenPorterAddress: PropTypes.string.isRequired,
+      validatorAddress: PropTypes.string.isRequired,
       converterAddress: PropTypes.string.isRequired,
       metTokenAddress: PropTypes.string.isRequired
     }).isRequired
   }
 
+  static defaultProps = {
+    withDefault: t => t
+  }
+
   messageParser(str) {
     const replacements = [
+      {
+        search: this.props.config.tokenPorterAddress,
+        replaceWith: 'MET PORTER CONTRACT'
+      },
+      {
+        search: this.props.config.validatorAddress,
+        replaceWith: 'PORT VALIDATOR CONTRACT'
+      },
       {
         search: this.props.config.metTokenAddress,
         replaceWith: 'MET TOKEN CONTRACT'
@@ -25,7 +40,19 @@ class FilteredMessage extends React.Component {
         search: this.props.config.converterAddress,
         replaceWith: 'CONVERTER CONTRACT'
       },
-      { search: /(.*gas too low.*)/gim, replaceWith: () => 'Gas too low.' },
+      { search: /(.*gas too low.*)/gi, replaceWith: () => 'Gas too low.' },
+      {
+        search: /[\s\S]*Transaction has been reverted by the EVM[\s\S]*/gi,
+        replaceWith: () => 'Transaction failed'
+      },
+      {
+        search: /[\s\S]*CONNECTION TIMEOUT[\s\S]*/gi,
+        replaceWith: () => 'Connection timeout'
+      },
+      {
+        search: /[\s\S]*Couldn't connect to node on WS[\s\S]*/gi,
+        replaceWith: () => `Couldn't connect to blockchain node`
+      },
       {
         search: /(.*insufficient funds for gas \* price \+ value.*)/gim,
         replaceWith: () => "You don't have enough funds for this transaction."
@@ -55,7 +82,11 @@ class FilteredMessage extends React.Component {
   }
 
   render() {
-    return this.messageParser(this.props.children)
+    const filteredMessage = this.messageParser(this.props.children)
+
+    return filteredMessage === this.props.children
+      ? this.props.withDefault(this.props.children)
+      : filteredMessage
   }
 }
 
