@@ -340,13 +340,6 @@ export const getTxSyncStatus = createSelector(
   chainData => chainData.wallets.syncStatus
 )
 
-// Returns a transaction object given a transaction hash
-export const getTransactionFromHash = createSelector(
-  getActiveWalletTransactions,
-  (state, props) => props.hash,
-  (transactions, hash) => transactions.find(tx => tx.hash === hash)
-)
-
 // Returns if renderer has enough data to load the wallet UI.
 // Renderer will display the "Gathering data..." screen until it does.
 export const hasEnoughData = state => state.session.hasEnoughData
@@ -440,6 +433,17 @@ export const getMergedTransactions = createSelector(
         )
       )
     )
+)
+
+// Returns a transaction object given a transaction hash
+export const getTransactionFromHash = createSelector(
+  getMergedTransactions,
+  getActiveAddress,
+  (state, props) => props.hash,
+  (transactions, activeAddress, hash) =>
+    transactions
+      .map(utils.createTransactionParser(activeAddress))
+      .find(tx => tx.hash === hash)
 )
 
 // Returns an array of ongoing imports with not enough validations yet
