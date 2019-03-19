@@ -450,40 +450,47 @@ export const getTransactionFromHash = createSelector(
 export const getOngoingImports = createSelector(
   getActiveWalletTransactions,
   getMergedTransactions,
-  (transactions, allTx) =>
-    uniqBy(transactions, ({ portBurnHash }) => portBurnHash)
-      // get all import requests that are not already imported
-      .filter(
-        ({ txType, portBurnHash }) =>
-          txType === 'import-requested' &&
-          transactions.findIndex(
-            tx => tx.txType === 'imported' && portBurnHash === tx.portBurnHash
-          ) === -1
-      )
-      // add the count for all their validations and refutations
-      .map(tx => {
-        const attestations = transactions.filter(
-          ({ txType, portBurnHash }) =>
-            (txType === 'attestation' || txType === 'imported') &&
-            portBurnHash === tx.portBurnHash
+  (transactions, allTx) => {
+    // get all import requests
+    const importRequests = transactions.filter(
+      ({ txType }) => txType === 'import-requested'
+    )
+    return (
+      // omit retries
+      uniqBy(importRequests, ({ portBurnHash }) => portBurnHash)
+        // omit already imported
+        .filter(
+          ({ portBurnHash }) =>
+            transactions.findIndex(
+              tx => tx.txType === 'imported' && portBurnHash === tx.portBurnHash
+            ) === -1
         )
-        const exportTx = allTx.find(
-          globalTx =>
-            get(globalTx, 'meta.metronome.export.currentBurnHash', false) ===
-            tx.portBurnHash
-        )
-        return {
-          attestedCount: attestations.filter(
-            ({ isAttestationValid }) => isAttestationValid
-          ).length,
-          refutedCount: attestations.filter(
-            ({ isAttestationValid }) => !isAttestationValid
-          ).length,
-          ...tx,
-          ...get(exportTx, 'meta.metronome.export', {}),
-          originChain: get(exportTx, 'originChain')
-        }
-      })
+        // add the count for all their validations and refutations
+        .map(tx => {
+          const attestations = transactions.filter(
+            ({ txType, portBurnHash }) =>
+              (txType === 'attestation' || txType === 'imported') &&
+              portBurnHash === tx.portBurnHash
+          )
+          const exportTx = allTx.find(
+            globalTx =>
+              get(globalTx, 'meta.metronome.export.currentBurnHash', false) ===
+              tx.portBurnHash
+          )
+          return {
+            attestedCount: attestations.filter(
+              ({ isAttestationValid }) => isAttestationValid
+            ).length,
+            refutedCount: attestations.filter(
+              ({ isAttestationValid }) => !isAttestationValid
+            ).length,
+            ...tx,
+            ...get(exportTx, 'meta.metronome.export', {}),
+            originChain: get(exportTx, 'originChain')
+          }
+        })
+    )
+  }
 )
 
 // Returns an array of exports that lack an import operation
