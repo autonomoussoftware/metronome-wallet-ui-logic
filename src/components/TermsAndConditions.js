@@ -3,7 +3,10 @@ import React from 'react'
 
 const TermsAndConditions = ({ ParagraphComponent: P }) => (
   <React.Fragment>
-    <P>Copyright 2018 Autonomous Software</P>
+    <P>
+      Copyright 2018&ndash;
+      {new Date().getFullYear()} Autonomous Software
+    </P>
     <P>
       Permission is hereby granted, free of charge, to any person obtaining a
       copy of this software and associated documentation files (the
@@ -29,13 +32,13 @@ const TermsAndConditions = ({ ParagraphComponent: P }) => (
     <P>ADDITIONAL TERMS REGARDING SOFTWARE USE</P>
     <P>
       The Software represents cryptocurrency wallet software (the
-      &ldquo;Wallet&rdquo;). IF YOU LOSE ACCESS TO YOUR WALLET OR YOUR
-      ENCRYPTED PRIVATE KEYS AND YOU HAVE NOT SEPARATELY STORED A BACKUP OF YOUR
-      WALLET AND CORRESPONDING PASSWORD, ANY AMOUNTS YOU HAVE STORED WITHIN
-      WALLET WILL BECOME INACCESSIBLE. Autonomous Software cannot retrieve your
-      private keys or passwords if you lose or forget them. Autonomous Software
-      does not control any of the protocols that govern any cryptocurrency and
-      cannot confirm any transaction
+      &ldquo;Wallet&rdquo;). IF YOU LOSE ACCESS TO YOUR WALLET OR YOUR ENCRYPTED
+      PRIVATE KEYS AND YOU HAVE NOT SEPARATELY STORED A BACKUP OF YOUR WALLET
+      AND CORRESPONDING PASSWORD, ANY AMOUNTS YOU HAVE STORED WITHIN WALLET WILL
+      BECOME INACCESSIBLE. Autonomous Software cannot retrieve your private keys
+      or passwords if you lose or forget them. Autonomous Software does not
+      control any of the protocols that govern any cryptocurrency and cannot
+      confirm any transaction
     </P>
     <P>
       Transactions with cryptocurrencies carry inherent risks. Cryptocurrency
