@@ -386,24 +386,6 @@ export const convertFeatureStatus = createSelector(
     isOnline ? (utils.hasFunds(coinBalance) ? 'ok' : 'no-coin') : 'offline'
 )
 
-// Returns the status of the "Port" feature on the active chain
-export const portFeatureStatus = createSelector(
-  getActiveWalletCoinBalance,
-  getActiveWalletMetBalance,
-  getIsOnline,
-  getConfig,
-  (coinBalance, metBalance, isOnline, config) =>
-    config.enabledChains.length > 0
-      ? isOnline
-        ? utils.hasFunds(coinBalance)
-          ? utils.hasFunds(metBalance)
-            ? 'ok'
-            : 'no-met'
-          : 'no-coin'
-        : 'offline'
-      : 'no-multichain'
-)
-
 // Returns the status of the "Retry Import" feature on the active chain
 export const retryImportFeatureStatus = createSelector(
   getActiveWalletCoinBalance,
@@ -551,6 +533,11 @@ export const getChainsWithBalances = createSelector(
       )[0]
       return {
         displayName: chainConfig.displayName,
+        coinBalance: get(
+          walletsData,
+          ['byId', activeWallet, 'addresses', activeAddress, 'balance'],
+          null
+        ),
         balance: get(
           walletsData,
           [
@@ -567,6 +554,32 @@ export const getChainsWithBalances = createSelector(
         id: chainName
       }
     })
+)
+
+// Returns the status of the "Port" feature on the active chain
+export const portFeatureStatus = createSelector(
+  getActiveWalletCoinBalance,
+  getActiveWalletMetBalance,
+  getChainsWithBalances,
+  getActiveChain,
+  getIsOnline,
+  getConfig,
+  // eslint-disable-next-line max-params
+  (coinBalance, metBalance, chainsBalances, activeChain, isOnline, config) =>
+    config.enabledChains.length > 0
+      ? isOnline
+        ? utils.hasFunds(coinBalance)
+          ? utils.hasFunds(metBalance)
+            ? chainsBalances.filter(
+                chain =>
+                  chain.id !== activeChain && utils.hasFunds(chain.coinBalance)
+              ).length > 0
+              ? 'ok'
+              : 'no-destination-coin'
+            : 'no-met'
+          : 'no-coin'
+        : 'offline'
+      : 'no-multichain'
 )
 
 export const getChainsReadyStatus = createSelector(

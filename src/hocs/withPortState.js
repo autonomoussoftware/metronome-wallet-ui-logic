@@ -14,6 +14,7 @@ const withPortState = WrappedComponent => {
         'ok'
       ]).isRequired,
       portFeatureStatus: PropTypes.oneOf([
+        'no-destination-coin',
         'no-multichain',
         'offline',
         'no-coin',
@@ -42,9 +43,11 @@ const withPortState = WrappedComponent => {
             ? "Can't port while offline"
             : portFeatureStatus === 'no-coin'
               ? `You need some ${coinSymbol} to pay for port gas`
-              : portFeatureStatus === 'no-met'
-                ? 'You need some MET to port'
-                : null
+              : portFeatureStatus === 'no-destination-coin'
+                ? `You need some funds in the destination chains to pay for port gas`
+                : portFeatureStatus === 'no-met'
+                  ? 'You need some MET to port'
+                  : null
 
       const retryDisabledReason =
         retryImportFeatureStatus === 'no-multichain'
