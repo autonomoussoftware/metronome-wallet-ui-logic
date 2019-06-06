@@ -3,6 +3,7 @@ import { connect } from 'react-redux'
 import PropTypes from 'prop-types'
 import React from 'react'
 
+import { withClient } from '../hocs/clientContext'
 import * as selectors from '../selectors'
 
 class FilteredMessage extends React.Component {
@@ -15,6 +16,9 @@ class FilteredMessage extends React.Component {
       validatorAddress: PropTypes.string.isRequired,
       converterAddress: PropTypes.string.isRequired,
       metTokenAddress: PropTypes.string.isRequired
+    }).isRequired,
+    client: PropTypes.shape({
+      fromWei: PropTypes.func.isRequired
     }).isRequired
   }
 
@@ -64,10 +68,10 @@ class FilteredMessage extends React.Component {
           const rounder = smartRounder(6, 0, 18)
           return [
             p1,
-            rounder(p2, true),
+            rounder(this.props.client.fromWei(p2), true),
             ` ${this.props.coinSymbol}`,
             p3,
-            rounder(p4, true),
+            rounder(this.props.client.fromWei(p4), true),
             ` ${this.props.coinSymbol}`,
             p5
           ].join('')
@@ -95,4 +99,4 @@ const mapStateToProps = state => ({
   config: selectors.getActiveChainConfig(state)
 })
 
-export default connect(mapStateToProps)(FilteredMessage)
+export default connect(mapStateToProps)(withClient(FilteredMessage))
