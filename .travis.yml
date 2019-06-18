@@ -1,29 +1,22 @@
 language: node_js
 node_js:
-  - '8'
-  - '10'
+  - "10"
 
-cache:
-  directories:
-    - 'node_modules'
+cache: npm
 
-if: tag IS blank
+if: branch = master
 
-jobs:
-  include:
-    - stage: npm release
+script: npm run lint
 
-      if: branch = master
+before_deploy:
+  - export VERSION_TAG=$(git ls-remote origin | grep "$TRAVIS_COMMIT\s\+refs/tags/v[0-9]\+\.[0-9]\+\.[0-9]\+\^{}$")
+  - echo "//registry.npmjs.org/:_authToken=${NPM_AUTH_TOKEN}" > ~/.npmrc
+  - npm i --global otp-cli
+  - export NPM_OTP=$(otp-cli totp generate -k "$NPM_OTP_SECRET")
 
-      script: echo publishing...
+deploy:
+  provider: script
+  script: if [ -n "$VERSION_TAG" ]; then npm publish --access public --otp "$NPM_OTP"; else echo commit not tagged; fi
+  skip_cleanup: true
 
-      before_deploy:
-        - export VERSION_TAG=$(git ls-remote origin | grep "$TRAVIS_COMMIT\s\+refs/tags/v[0-9]\+\.[0-9]\+\.[0-9]\+\^{}$")
-        - echo "//registry.npmjs.org/:_authToken=${NPM_AUTH_TOKEN}" > ~/.npmrc
-        - npm i --global otp-cli
-        - export NPM_OTP=$(otp-cli totp generate -k "$NPM_OTP_SECRET")
-      deploy:
-        provider: script
-        script: if [ -n "$VERSION_TAG" ]; then npm publish --access public --otp "$NPM_OTP"; else echo commit not tagged; fi
-        skip_cleanup: true
-      after_deploy: rm ~/.npmrc
+after_deploy: rm ~/.npmrc
