@@ -11,10 +11,16 @@ import * as utils from './utils'
 export const getChains = state => state.chains
 
 // Returns the active chain id
-export const getActiveChain = createSelector(getChains, chains => chains.active)
+export const getActiveChain = createSelector(
+  getChains,
+  chains => chains.active
+)
 
 // Returns a map of enabled chains by id
-export const getChainsById = createSelector(getChains, chains => chains.byId)
+export const getChainsById = createSelector(
+  getChains,
+  chains => chains.byId
+)
 
 // Returns all the data related to the active chain
 export const getActiveChainData = createSelector(
@@ -45,12 +51,14 @@ export const getActiveChainDisplayName = createSelector(
 // Returns a map of type { [coinSymbol]: chainConfig }
 // Useful for accessing fields like chain displayName when you only have the,
 // chain coin symbol e.g. while parsing import/export metadata
-export const getChainsConfigBySymbol = createSelector(getConfig, config =>
-  Object.keys(config.chains).reduce((acc, chainId) => {
-    const chainConfig = config.chains[chainId]
-    acc[chainConfig.symbol] = { ...chainConfig, id: chainConfig }
-    return acc
-  }, {})
+export const getChainsConfigBySymbol = createSelector(
+  getConfig,
+  config =>
+    Object.keys(config.chains).reduce((acc, chainId) => {
+      const chainConfig = config.chains[chainId]
+      acc[chainConfig.symbol] = { ...chainConfig, id: chainConfig }
+      return acc
+    }, {})
 )
 
 // Return if wallet is configured to be used with more than one chain.
@@ -562,24 +570,41 @@ export const portFeatureStatus = createSelector(
   getActiveWalletMetBalance,
   getChainsWithBalances,
   getActiveChain,
+  getChainsById,
   getIsOnline,
   getConfig,
   // eslint-disable-next-line max-params
-  (coinBalance, metBalance, chainsBalances, activeChain, isOnline, config) =>
-    config.enabledChains.length > 0
+  (coinBalance, metBalance, balances, activeChain, chainsById, isOnline, cfg) =>
+    cfg.enabledChains.length > 0
       ? isOnline
-        ? utils.hasFunds(coinBalance)
-          ? utils.hasFunds(metBalance)
-            ? chainsBalances.filter(
-                chain =>
-                  chain.id !== activeChain && utils.hasFunds(chain.coinBalance)
-              ).length > 0
-              ? 'ok'
-              : 'no-destination-coin'
-            : 'no-met'
-          : 'no-coin'
+        ? Object.keys(chainsById).filter(
+            id => !chainsById[id].meta.isChainHopEnabled
+          ).length === 0
+          ? utils.hasFunds(coinBalance)
+            ? utils.hasFunds(metBalance)
+              ? balances.filter(
+                  chain =>
+                    chain.id !== activeChain &&
+                    utils.hasFunds(chain.coinBalance)
+                ).length > 0
+                ? 'ok'
+                : 'no-destination-coin'
+              : 'no-met'
+            : 'no-coin'
+          : 'not-enabled'
         : 'offline'
       : 'no-multichain'
+)
+
+// Returns the "latest" chain hop start time from all active chains
+export const getChainHopStartTime = createSelector(
+  getChainsById,
+  chainsById =>
+    Math.max(
+      ...Object.keys(chainsById)
+        .map(chainId => chainsById[chainId].meta.chainHopStartTime)
+        .filter(timestamp => typeof timestamp === 'number')
+    ).toString()
 )
 
 export const getChainsReadyStatus = createSelector(
@@ -629,8 +654,10 @@ export const getPortDestinations = createSelector(
   getActiveChain,
   getConfig,
   (active, config) =>
-    config.enabledChains.filter(chainId => chainId !== active).map(chainId => ({
-      label: config.chains[chainId].displayName,
-      value: chainId
-    }))
+    config.enabledChains
+      .filter(chainId => chainId !== active)
+      .map(chainId => ({
+        label: config.chains[chainId].displayName,
+        value: chainId
+      }))
 )

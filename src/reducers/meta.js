@@ -5,6 +5,8 @@ const initialState = {
   attestationThreshold: null,
   bestBlockTimestamp: null,
   isIndexerConnected: null,
+  chainHopStartTime: null,
+  isChainHopEnabled: null,
   isWeb3Connected: null,
   rateLastUpdated: null,
   gasPrice: null,
@@ -51,6 +53,13 @@ const reducer = handleActions(
     'attestation-threshold-updated': (state, { payload }) => ({
       ...state,
       attestationThreshold: payload.threshold
+    }),
+
+    'chain-hop-start-time-updated': (state, { payload }) => ({
+      ...state,
+      chainHopStartTime: payload.chainHopStartTime,
+      // Check if we are past start time on each new block
+      isChainHopEnabled: Date.now() > payload.chainHopStartTime
     }),
 
     'blockchain-set': (state, { payload }) => ({
