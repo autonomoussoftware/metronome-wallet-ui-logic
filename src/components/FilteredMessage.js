@@ -15,7 +15,8 @@ class FilteredMessage extends React.Component {
       tokenPorterAddress: PropTypes.string.isRequired,
       validatorAddress: PropTypes.string.isRequired,
       converterAddress: PropTypes.string.isRequired,
-      metTokenAddress: PropTypes.string.isRequired
+      metTokenAddress: PropTypes.string.isRequired,
+      auctionAddress: PropTypes.string.isRequired
     }).isRequired,
     client: PropTypes.shape({
       fromWei: PropTypes.func.isRequired
@@ -43,6 +44,10 @@ class FilteredMessage extends React.Component {
       {
         search: this.props.config.converterAddress,
         replaceWith: 'CONVERTER CONTRACT'
+      },
+      {
+        search: this.props.config.auctionAddress,
+        replaceWith: 'AUCTION CONTRACT'
       },
       { search: /(.*gas too low.*)/gi, replaceWith: () => 'Gas too low.' },
       {
