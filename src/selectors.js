@@ -375,14 +375,21 @@ export const sendMetFeatureStatus = createSelector(
 
 // Returns the status of the "Buy Metronome" feature on the active chain
 export const buyFeatureStatus = createSelector(
+  getActiveWalletCoinBalance,
   getAuctionStatus,
   getIsOnline,
-  (auctionStatus, isOnline) => {
+  (coinBalance, auctionStatus, isOnline) => {
     const isDepleted =
       auctionStatus &&
       auctionStatus.tokenRemaining &&
       !utils.hasFunds(auctionStatus.tokenRemaining)
-    return isOnline ? (isDepleted ? 'depleted' : 'ok') : 'offline'
+    return isOnline
+      ? isDepleted
+        ? 'depleted'
+        : utils.hasFunds(coinBalance)
+        ? 'ok'
+        : 'no-coin'
+      : 'offline'
   }
 )
 

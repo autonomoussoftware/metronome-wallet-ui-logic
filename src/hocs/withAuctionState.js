@@ -7,8 +7,12 @@ import React from 'react'
 const withAuctionState = WrappedComponent => {
   class Container extends React.Component {
     static propTypes = {
-      buyFeatureStatus: PropTypes.oneOf(['offline', 'depleted', 'ok'])
-        .isRequired,
+      buyFeatureStatus: PropTypes.oneOf([
+        'depleted',
+        'offline',
+        'no-coin',
+        'ok'
+      ]).isRequired,
       auctionStatus: PropTypes.shape({
         nextAuctionStartTime: PropTypes.number.isRequired,
         tokenRemaining: PropTypes.string.isRequired,
@@ -17,6 +21,7 @@ const withAuctionState = WrappedComponent => {
         genesisTime: PropTypes.number.isRequired
       }),
       lastUpdated: PropTypes.number,
+      coinSymbol: PropTypes.string.isRequired,
       client: PropTypes.shape({
         fromWei: PropTypes.func.isRequired
       }).isRequired
@@ -26,7 +31,7 @@ const withAuctionState = WrappedComponent => {
       WrappedComponent.name})`
 
     render() {
-      const { auctionStatus, buyFeatureStatus } = this.props
+      const { auctionStatus, buyFeatureStatus, coinSymbol } = this.props
 
       const title =
         buyFeatureStatus === 'depleted'
@@ -40,8 +45,10 @@ const withAuctionState = WrappedComponent => {
         buyFeatureStatus === 'offline'
           ? "Can't buy while offline"
           : buyFeatureStatus === 'depleted'
-            ? 'No MET remaining in current auction'
-            : null
+          ? 'No MET remaining in current auction'
+          : buyFeatureStatus === 'no-coin'
+          ? `You need some ${coinSymbol} to buy MET`
+          : null
 
       return (
         <WrappedComponent
@@ -59,7 +66,8 @@ const withAuctionState = WrappedComponent => {
     buyFeatureStatus: selectors.buyFeatureStatus(state),
     auctionPriceUSD: selectors.getAuctionPriceUSD(state, client),
     auctionStatus: selectors.getAuctionStatus(state),
-    lastUpdated: selectors.getAuctionLastUpdated(state)
+    lastUpdated: selectors.getAuctionLastUpdated(state),
+    coinSymbol: selectors.getCoinSymbol(state)
   })
 
   return withClient(connect(mapStateToProps)(Container))
