@@ -6,11 +6,11 @@ import React from 'react'
 
 class Root extends React.Component {
   static propTypes = {
-    OnboardingComponent: PropTypes.func.isRequired,
-    LoadingComponent: PropTypes.func.isRequired,
-    RouterComponent: PropTypes.func.isRequired,
+    OnboardingComponent: PropTypes.elementType.isRequired,
+    LoadingComponent: PropTypes.elementType.isRequired,
+    RouterComponent: PropTypes.elementType.isRequired,
     isSessionActive: PropTypes.bool.isRequired,
-    LoginComponent: PropTypes.func.isRequired,
+    LoginComponent: PropTypes.elementType.isRequired,
     hasEnoughData: PropTypes.bool.isRequired,
     isMultiChain: PropTypes.bool.isRequired,
     dispatch: PropTypes.func.isRequired,
