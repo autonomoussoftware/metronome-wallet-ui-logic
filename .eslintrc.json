@@ -9,7 +9,7 @@
   "env": {
     "browser": true
   },
-  "plugins": ["import", "react"],
+  "plugins": ["import", "react", "react-hooks"],
   "root": true,
   "extends": [
     "bloq",
@@ -20,10 +20,12 @@
   "settings": {
     "react": {
       "pragma": "React",
-      "version": "16.4.1"
+      "version": "16.8.3"
     }
   },
   "rules": {
+    "react-hooks/exhaustive-deps": "warn",
+    "react-hooks/rules-of-hooks": "error",
     "react/jsx-no-duplicate-props": ["error"],
     "react/no-unused-prop-types": ["warn"],
     "react/boolean-prop-naming": ["warn"],
