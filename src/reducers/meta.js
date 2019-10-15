@@ -29,7 +29,8 @@ const reducer = handleActions(
     'initial-state-received': (state, { payload }) => ({
       ...state,
       ...get(payload, 'meta', {}),
-      isConnected: null, // ignore web3 connection status persisted state
+      isIndexerConnected: null, // ignore indexer connection status persisted state
+      isWeb3Connected: null, // ignore web3 connection status persisted state
       gasPrice: get(payload, 'meta.gasPrice', payload.config.defaultGasPrice)
     }),
 
