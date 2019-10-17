@@ -4,7 +4,16 @@ import BigNumber from 'bignumber.js'
 const ERROR_VALUE_PLACEHOLDER = 'Invalid amount'
 const SMALL_VALUE_PLACEHOLDER = '< 0.01'
 
-function getWeiUSDvalue(client, amount, rate) {
+/**
+ * Converts a coin value (in wei) to a USD value given a certain coin/usd rate
+ *
+ * @param {Object} client - A wallet client object
+ * @param {string} amount - The coin amount
+ * @param {number} rate - The coin/usd rate
+ *
+ * @returns {string} The USD amount
+ */
+function getWeiUsdValue(client, amount, rate) {
   const amountBN = client.toBN(amount)
   const rateBN = client.toBN(
     client.toWei(typeof rate === 'string' ? rate : rate.toString())
@@ -12,12 +21,21 @@ function getWeiUSDvalue(client, amount, rate) {
   return amountBN.mul(rateBN).div(client.toBN(client.toWei('1')))
 }
 
-function toUSD(client, amount, rate) {
+/**
+ * Converts a coin value to a USD value given a certain coin/usd rate
+ *
+ * @param {Object} client - A wallet client object
+ * @param {string} amount - The coin amount
+ * @param {number} rate - The coin/usd rate
+ *
+ * @returns {string} The USD amount
+ */
+function toUsd(client, amount, rate) {
   let isValidAmount
   let weiUSDvalue
 
   try {
-    weiUSDvalue = getWeiUSDvalue(client, client.toWei(sanitize(amount)), rate)
+    weiUSDvalue = getWeiUsdValue(client, client.toWei(sanitize(amount)), rate)
     isValidAmount = weiUSDvalue.gte(client.toBN('0'))
   } catch (e) {
     isValidAmount = false
@@ -27,15 +45,22 @@ function toUSD(client, amount, rate) {
     ? weiUSDvalue.isZero()
       ? '0'
       : weiUSDvalue.lt(client.toBN(client.toWei('0.01')))
-        ? SMALL_VALUE_PLACEHOLDER
-        : new BigNumber(client.fromWei(weiUSDvalue.toString()))
-            .dp(2)
-            .toString(10)
+      ? SMALL_VALUE_PLACEHOLDER
+      : new BigNumber(client.fromWei(weiUSDvalue.toString())).dp(2).toString(10)
     : ERROR_VALUE_PLACEHOLDER
 
   return expectedUSDamount
 }
 
+/**
+ * Converts a USD value to a coin value given a certain coin/usd rate
+ *
+ * @param {Object} client - A wallet client object
+ * @param {string} amount - The USD amount
+ * @param {number} rate - The coin/usd rate
+ *
+ * @returns {string} The coin amount
+ */
 function toCoin(client, amount, rate) {
   let isValidAmount
   let weiAmount
@@ -46,14 +71,14 @@ function toCoin(client, amount, rate) {
     isValidAmount = false
   }
 
-  const expectedCoinamount = isValidAmount
+  const expectedCoinAmount = isValidAmount
     ? weiAmount
         .dividedBy(new BigNumber(client.toWei(String(rate))))
         .decimalPlaces(18)
         .toString(10)
     : ERROR_VALUE_PLACEHOLDER
 
-  return expectedCoinamount
+  return expectedCoinAmount
 }
 
 /**
@@ -66,6 +91,10 @@ function toCoin(client, amount, rate) {
  * @param {string} params.id - The id of the field being updated
  * @param {string} params.value - The new value of the field being updated
  * @param {string} params.client - The client object
+ *
+ * @returns {Object} result
+ * @returns {string} result.usdAmount - The synced amount in USD
+ * @returns {string} result.coinAmount - The synced amount in coin
  */
 export function syncAmounts({ state, coinPrice, id, value, client }) {
   const sanitizedValue = sanitizeInput(value)
@@ -73,7 +102,7 @@ export function syncAmounts({ state, coinPrice, id, value, client }) {
     ...state,
     usdAmount:
       id === 'coinAmount'
-        ? toUSD(client, sanitizedValue, coinPrice)
+        ? toUsd(client, sanitizedValue, coinPrice)
         : state.usdAmount,
     coinAmount:
       id === 'usdAmount'

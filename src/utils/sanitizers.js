@@ -3,6 +3,7 @@
  * Useful to deal with locales with comma-separated decimals
  *
  * @param {string} amount - The string to sanitize
+ * @returns {string} The sanitized string
  */
 export function sanitize(amount = '') {
   return amount.replace(',', '.')
@@ -13,6 +14,7 @@ export function sanitize(amount = '') {
  * Useful for sanitizing user input before recovering a wallet.
  *
  * @param {string} str - The string to sanitize
+ * @returns {string} The sanitized string
  */
 export function sanitizeMnemonic(str) {
   return str
@@ -27,6 +29,7 @@ export function sanitizeMnemonic(str) {
  * invalid breaks.
  *
  * @param {string} str - The string to sanitize
+ * @returns {string} The sanitized string
  */
 export function sanitizeInput(str) {
   return typeof str === 'string' ? str.replace(/\s+|\n+|\t+/g, '') : str

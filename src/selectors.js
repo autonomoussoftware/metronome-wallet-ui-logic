@@ -497,7 +497,10 @@ export const getFailedImports = createSelector(
   getActiveAddress,
   getCoinSymbol,
   (allTx, activeAddressData, activeAddress, coinSymbol) => {
-    // keep only export transactions with active chain as destination
+    /**
+     * @param {Object} tx - Unparsed transaction object
+     * @returns {boolean} True if export transaction with active chain as destination
+     */
     function isFailedImport(tx) {
       const isExport = get(tx, 'meta.metronome.export', false)
 

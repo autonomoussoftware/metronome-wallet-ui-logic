@@ -24,6 +24,13 @@ const createChainReducer = chain => (state, action) => {
   })(state, action)
 }
 
+/**
+ * chains reducer
+ *
+ * @param {Object} state - The current state of this state branch
+ * @param {Object} action - A Redux action
+ * @returns {Object} The next state
+ */
 export default function(state = initialState, action) {
   switch (action.type) {
     // init state from persisted state and config

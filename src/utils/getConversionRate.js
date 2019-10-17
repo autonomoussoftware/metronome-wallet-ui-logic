@@ -15,6 +15,8 @@ BigNumber.config({ FORMAT: format })
  * @param {Object} client - The client object
  * @param {string} metAmount - The MET amount provided or obtained (in wei)
  * @param {string} coinAmount - The coin amount provided or obtained (in wei)
+ *
+ * @returns {string} The conversion rate
  */
 export function getConversionRate(client, metAmount, coinAmount) {
   const compareAgainst = client.fromWei(metAmount)

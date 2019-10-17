@@ -2,14 +2,28 @@ import BigNumber from 'bignumber.js'
 import moment from 'moment'
 import get from 'lodash/get'
 
+/**
+ * @param {Object} rawTx - A raw (unparsed) transaction object
+ * @returns {boolean} True if the transaction is an Auction transaction
+ */
 function isAuctionTransaction(rawTx) {
   return get(rawTx.meta, 'metronome.auction', false)
 }
 
+/**
+ * @param {Object} rawTx - A raw (unparsed) transaction object
+ * @returns {boolean} True if the transaction is a Converter transaction
+ */
 function isConversionTransaction(rawTx) {
   return get(rawTx.meta, 'metronome.converter', false)
 }
 
+/**
+ * @param {Object} rawTx - A raw (unparsed) transaction object
+ * @param {Object} tokenData - The parsed Metronome metadata parsed from raw tx
+ * @param {string} myAddress - The current wallet address
+ * @returns {boolean} True if the transaction is a generic outgoing transaction
+ */
 function isSendTransaction({ transaction }, tokenData, myAddress) {
   return (
     (!tokenData && transaction.from && transaction.from === myAddress) ||
@@ -18,6 +32,12 @@ function isSendTransaction({ transaction }, tokenData, myAddress) {
   )
 }
 
+/**
+ * @param {Object} rawTx - A raw (unparsed) transaction object
+ * @param {Object} tokenData - The parsed Metronome metadata parsed from raw tx
+ * @param {string} myAddress - The current wallet address
+ * @returns {boolean} True if the transaction is a generic incoming transaction
+ */
 function isReceiveTransaction({ transaction }, tokenData, myAddress) {
   return (
     (!tokenData && transaction.to && transaction.to === myAddress) ||
@@ -25,10 +45,18 @@ function isReceiveTransaction({ transaction }, tokenData, myAddress) {
   )
 }
 
+/**
+ * @param {Object} rawTx - A raw (unparsed) transaction object
+ * @returns {boolean} True if the transaction is an import request
+ */
 function isImportRequestTransaction(rawTx) {
   return get(rawTx.meta, 'metronome.importRequest', false)
 }
 
+/**
+ * @param {Object} rawTx - A raw (unparsed) transaction object
+ * @returns {boolean} True if the transaction is an attestation
+ */
 function isAttestation(rawTx) {
   return (
     get(rawTx.meta, 'metronome.attestation', false) &&
@@ -36,14 +64,28 @@ function isAttestation(rawTx) {
   )
 }
 
+/**
+ * @param {Object} rawTx - A raw (unparsed) transaction object
+ * @returns {boolean} True if the transaction is an import
+ */
 function isImportTransaction(rawTx) {
   return get(rawTx.meta, 'metronome.import', false)
 }
 
+/**
+ * @param {Object} rawTx - A raw (unparsed) transaction object
+ * @returns {boolean} True if the transaction is an export
+ */
 function isExportTransaction(rawTx) {
   return get(rawTx.meta, 'metronome.export', false)
 }
 
+/**
+ * @param {Object} rawTx - A raw (unparsed) transaction object
+ * @param {Object} tokenData - The parsed Metronome metadata parsed from raw tx
+ * @param {string} myAddress - The current wallet address
+ * @returns {string} The wallet-usable transaction type or "unknown" if not recognized
+ */
 function getTxType(rawTx, tokenData, myAddress) {
   if (isAuctionTransaction(rawTx)) return 'auction'
   if (isConversionTransaction(rawTx)) return 'converted'
@@ -56,40 +98,68 @@ function getTxType(rawTx, tokenData, myAddress) {
   return 'unknown'
 }
 
+/**
+ * @param {Object} rawTx - A raw (unparsed) transaction object
+ * @param {Object} tokenData - The parsed Metronome metadata parsed from raw tx
+ * @param {string} txType - The wallet-usable transaction type
+ * @returns {string} The wallet-usable address the transaction comes from
+ */
 function getFrom(rawTx, tokenData, txType) {
   return txType === 'received' && tokenData && tokenData.from
     ? tokenData.from
     : rawTx.transaction.from
-      ? rawTx.transaction.from
-      : null
+    ? rawTx.transaction.from
+    : null
 }
 
+/**
+ * @param {Object} rawTx - A raw (unparsed) transaction object
+ * @param {Object} tokenData - The parsed Metronome metadata parsed from raw tx
+ * @param {string} txType - The wallet-usable transaction type
+ * @returns {string} The wallet-usable recipient address of the transaction
+ */
 function getTo(rawTx, tokenData, txType) {
   return txType === 'sent' && tokenData && tokenData.to
     ? tokenData.to
     : rawTx.transaction.to
-      ? rawTx.transaction.to
-      : null
+    ? rawTx.transaction.to
+    : null
 }
 
+/**
+ * @param {Object} rawTx - A raw (unparsed) transaction object
+ * @param {Object} tokenData - The parsed Metronome metadata parsed from raw tx
+ * @param {string} txType - The wallet-usable transaction type
+ * @returns {string} The wallet-usable transaction amount
+ */
 function getValue(rawTx, tokenData, txType) {
   return ['received', 'sent'].includes(txType) && tokenData && tokenData.value
     ? tokenData.value
     : txType === 'exported'
-      ? get(rawTx, ['meta', 'metronome', 'export', 'value'], null)
-      : txType === 'import-requested'
-        ? get(rawTx, ['meta', 'metronome', 'importRequest', 'value'], null)
-        : txType === 'imported'
-          ? get(rawTx, ['meta', 'metronome', 'import', 'value'], null)
-          : rawTx.transaction.value
+    ? get(rawTx, ['meta', 'metronome', 'export', 'value'], null)
+    : txType === 'import-requested'
+    ? get(rawTx, ['meta', 'metronome', 'importRequest', 'value'], null)
+    : txType === 'imported'
+    ? get(rawTx, ['meta', 'metronome', 'import', 'value'], null)
+    : rawTx.transaction.value
 }
 
+/**
+ * @param {Object} rawTx - A raw (unparsed) transaction object
+ * @param {string} txType - The wallet-usable transaction type
+ * @returns {boolean} True if transaction is a valid attestation
+ */
 function getIsAttestationValid(rawTx, txType) {
   return txType === 'attestation' || txType === 'import'
     ? get(rawTx, ['meta', 'metronome', 'attestation', 'isValid'], false)
     : null
 }
 
+/**
+ * @param {Object} rawTx - A raw (unparsed) transaction object
+ * @param {string} txType - The wallet-usable transaction type
+ * @returns {string} The amount of coin spent in an Auction transaction
+ */
 function getCoinSpentInAuction(rawTx, txType) {
   return txType === 'auction' && rawTx.meta
     ? new BigNumber(rawTx.transaction.value)
@@ -98,12 +168,23 @@ function getCoinSpentInAuction(rawTx, txType) {
     : null
 }
 
+/**
+ * @param {Object} rawTx - A raw (unparsed) transaction object
+ * @param {Object} tokenData - The parsed Metronome metadata parsed from raw tx
+ * @param {string} txType - The wallet-usable transaction type
+ * @returns {string} The amount of MET bought in an Auction transaction
+ */
 function getMetBoughtInAuction(rawTx, tokenData, txType) {
   return txType === 'auction' && rawTx.transaction.blockHash && tokenData
     ? tokenData.value
     : null
 }
 
+/**
+ * @param {Object} tokenData - The parsed Metronome metadata parsed from raw tx
+ * @param {string} txType - The wallet-usable transaction type
+ * @returns {string} The wallet-usable symbol to use together with the wallet-usable amount
+ */
 function getSymbol(tokenData, txType) {
   return ['received', 'sent'].includes(txType)
     ? tokenData
@@ -112,6 +193,11 @@ function getSymbol(tokenData, txType) {
     : null
 }
 
+/**
+ * @param {Object} rawTx - A raw (unparsed) transaction object
+ * @param {string} txType - The wallet-usable transaction type
+ * @returns {string} The wallet-usable symbol for the origin amount in a Convertion tx
+ */
 function getConvertedFrom(rawTx, txType) {
   return txType === 'converted'
     ? new BigNumber(rawTx.transaction.value).isZero()
@@ -120,16 +206,28 @@ function getConvertedFrom(rawTx, txType) {
     : null
 }
 
+/**
+ * @param {Object} rawTx - A raw (unparsed) transaction object
+ * @param {Object} tokenData - The parsed Metronome metadata parsed from raw tx
+ * @param {string} convertedFrom - The wallet-usable symbol of the origin amount
+ * @returns {string} The wallet-usable origin amount in a Convertion tx
+ */
 function getFromValue(rawTx, tokenData, convertedFrom) {
   return convertedFrom
     ? convertedFrom === 'coin'
       ? rawTx.transaction.value
       : tokenData
-        ? tokenData.value
-        : null
+      ? tokenData.value
+      : null
     : null
 }
 
+/**
+ * @param {Object} rawTx - A raw (unparsed) transaction object
+ * @param {Object} tokenData - The parsed Metronome metadata parsed from raw tx
+ * @param {string} convertedFrom - The wallet-usable symbol of the origin amount
+ * @returns {string} The wallet-usable result amount in a Convertion tx
+ */
 function getToValue(rawTx, tokenData, convertedFrom) {
   return convertedFrom && tokenData && rawTx.meta
     ? convertedFrom === 'coin'
@@ -138,6 +236,10 @@ function getToValue(rawTx, tokenData, convertedFrom) {
     : null
 }
 
+/**
+ * @param {Object} tokenData - The parsed Metronome metadata parsed from raw tx
+ * @returns {string} True if transaction is an Approval
+ */
 function getIsApproval(tokenData) {
   return (
     !!tokenData &&
@@ -146,6 +248,10 @@ function getIsApproval(tokenData) {
   )
 }
 
+/**
+ * @param {Object} tokenData - The parsed Metronome metadata parsed from raw tx
+ * @returns {string} True if transaction is an Approval Cancelation
+ */
 function getIsCancelApproval(tokenData) {
   return (
     !!tokenData &&
@@ -154,30 +260,58 @@ function getIsCancelApproval(tokenData) {
   )
 }
 
+/**
+ * @param {Object} tokenData - The parsed Metronome metadata parsed from raw tx
+ * @returns {string} The wallet-usable amount of an Approval transaction
+ */
 function getApprovedValue(tokenData) {
   return tokenData && tokenData.event === 'Approval' ? tokenData.value : null
 }
 
+/**
+ * @param {Object} tokenData - The parsed Metronome metadata parsed from raw tx
+ * @returns {boolean} True if transaction transaction metadata is still being gathered
+ */
 function getIsProcessing(tokenData) {
   return get(tokenData, 'processing', false)
 }
 
+/**
+ * @param {Object} rawTx - A raw (unparsed) transaction object
+ * @returns {boolean} True if the transaction is a failed contract call
+ */
 function getContractCallFailed(rawTx) {
   return get(rawTx, ['meta', 'contractCallFailed'], false)
 }
 
+/**
+ * @param {Object} rawTx - A raw (unparsed) transaction object
+ * @returns {string} The amount of gas used by the transaction
+ */
 function getGasUsed(rawTx) {
   return get(rawTx, ['receipt', 'gasUsed'], null)
 }
 
+/**
+ * @param {Object} rawTx - A raw (unparsed) transaction object
+ * @returns {string} The transaction hash
+ */
 function getTransactionHash(rawTx) {
   return get(rawTx, ['transaction', 'hash'], null)
 }
 
+/**
+ * @param {Object} rawTx - A raw (unparsed) transaction object
+ * @returns {number} The heigth of the block cointaining the transaction
+ */
 function getBlockNumber(rawTx) {
   return get(rawTx, ['transaction', 'blockNumber'], null)
 }
 
+/**
+ * @param {Object} rawTx - A raw (unparsed) transaction object
+ * @returns {string} The symbol of the origin chain on an import transaction
+ */
 function getImportedFrom(rawTx) {
   return (
     get(rawTx, ['meta', 'metronome', 'importRequest', 'originChain'], '') ||
@@ -185,10 +319,18 @@ function getImportedFrom(rawTx) {
   )
 }
 
+/**
+ * @param {Object} rawTx - A raw (unparsed) transaction object
+ * @returns {string} The symbol of the target chain on an export transaction
+ */
 function getExportedTo(rawTx) {
   return get(rawTx, ['meta', 'metronome', 'export', 'destinationChain'], '')
 }
 
+/**
+ * @param {Object} rawTx - A raw (unparsed) transaction object
+ * @returns {string} The fee amount payed during a port operation
+ */
 function getPortFee(rawTx) {
   return (
     get(rawTx, ['meta', 'metronome', 'importRequest', 'fee'], null) ||
@@ -197,6 +339,10 @@ function getPortFee(rawTx) {
   )
 }
 
+/**
+ * @param {Object} rawTx - A raw (unparsed) transaction object
+ * @returns {string} The destination address of a port operation
+ */
 function getPortDestinationAddress(rawTx) {
   return (
     get(rawTx, ['meta', 'metronome', 'importRequest', 'to'], null) ||
@@ -205,6 +351,10 @@ function getPortDestinationAddress(rawTx) {
   )
 }
 
+/**
+ * @param {Object} rawTx - A raw (unparsed) transaction object
+ * @returns {string} The port burn hash of a port operation
+ */
 function getPortBurnHash(rawTx) {
   return (
     get(rawTx, ['meta', 'metronome', 'export', 'currentBurnHash'], null) ||
@@ -214,8 +364,12 @@ function getPortBurnHash(rawTx) {
   )
 }
 
-// TODO: in the future other transaction types will include a timestamp
+/**
+ * @param {Object} rawTx - A raw (unparsed) transaction object
+ * @returns {number} The block timestamp
+ */
 function getTimestamp(rawTx) {
+  // TODO: in the future other transaction types will include a timestamp
   const timestamp = get(
     rawTx,
     ['meta', 'metronome', 'export', 'blockTimestamp'],
@@ -224,6 +378,10 @@ function getTimestamp(rawTx) {
   return timestamp ? Number(timestamp) : null
 }
 
+/**
+ * @param {number} timestamp - A block timestamp
+ * @returns {string} A user-readable timestamp
+ */
 function getFormattedTime(timestamp) {
   return timestamp ? moment.unix(timestamp).format('LLLL') : null
 }
