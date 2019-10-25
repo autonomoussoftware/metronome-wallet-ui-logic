@@ -156,6 +156,12 @@ export const getCoinSymbol = createSelector(
   activeChainConfig => activeChainConfig.symbol
 )
 
+// Returns the current chain decimals amount
+export const getCoinDecimals = createSelector(
+  getActiveChainConfig,
+  activeChainConfig => activeChainConfig.decimals
+)
+
 // Returns the current coin balance of the active address in wei
 export const getCoinBalanceWei = getActiveWalletCoinBalance
 

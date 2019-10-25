@@ -16,7 +16,7 @@ const initialState = {
 
 const reducer = handleActions(
   {
-    'indexer-connection-status-changed': (state, { payload }) => ({
+    'explorer-connection-status-changed': (state, { payload }) => ({
       ...state,
       isIndexerConnected: payload.connected
     }),
