@@ -162,6 +162,16 @@ export const getCoinDecimals = createSelector(
   activeChainConfig => activeChainConfig.decimals
 )
 
+// Returns a valid address placeholder according to the active chain type
+export const getAddressPlaceholder = createSelector(
+  getActiveChainConfig,
+  activeChainConfig =>
+    ({
+      ethereum: 'e.g. 0x2345678998765434567',
+      qtum: 'e.g. qNycw1uZjV8fpnUBuuoo4'
+    }[activeChainConfig.chainType] || '')
+)
+
 // Returns the current coin balance of the active address in wei
 export const getCoinBalanceWei = getActiveWalletCoinBalance
 

@@ -14,15 +14,23 @@ const withSendCoinFormState = WrappedComponent => {
       chainGasPrice: PropTypes.string.isRequired,
       availableCoin: PropTypes.string.isRequired,
       activeChain: PropTypes.string.isRequired,
+      chainConfig: PropTypes.shape({
+        chainType: PropTypes.string.isRequired,
+        chainId: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+          .isRequired
+      }).isRequired,
       coinSymbol: PropTypes.string.isRequired,
       coinPrice: PropTypes.number.isRequired,
       walletId: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
         .isRequired,
+      useGas: PropTypes.bool.isRequired,
       client: PropTypes.shape({
         getGasLimit: PropTypes.func.isRequired,
         isAddress: PropTypes.func.isRequired,
         sendCoin: PropTypes.func.isRequired,
+        fromCoin: PropTypes.func.isRequired,
         fromWei: PropTypes.func.isRequired,
+        toCoin: PropTypes.func.isRequired,
         toWei: PropTypes.func.isRequired
       }).isRequired,
       from: PropTypes.string.isRequired
@@ -47,7 +55,7 @@ const withSendCoinFormState = WrappedComponent => {
     resetForm = () => this.setState(this.initialState)
 
     onInputChange = ({ id, value }) => {
-      const { coinPrice, client } = this.props
+      const { coinPrice, client, useGas } = this.props
       this.setState(state => ({
         ...state,
         ...utils.syncAmounts({ state, coinPrice, id, value, client }),
@@ -57,7 +65,9 @@ const withSendCoinFormState = WrappedComponent => {
       }))
 
       // Estimate gas limit again if parameters changed
-      if (['coinAmount'].includes(id)) this.getGasEstimate()
+      if (useGas && ['coinAmount'].includes(id)) {
+        this.getGasEstimate()
+      }
     }
 
     getGasEstimate = debounce(() => {
@@ -91,7 +101,10 @@ const withSendCoinFormState = WrappedComponent => {
         gasPrice: this.props.client.toWei(this.state.gasPrice, 'gwei'),
         walletId: this.props.walletId,
         password,
-        value: this.props.client.toWei(utils.sanitize(this.state.coinAmount)),
+        value: this.props.client.fromCoin(
+          this.props.chainConfig,
+          utils.sanitize(this.state.coinAmount)
+        ),
         chain: this.props.activeChain,
         from: this.props.from,
         gas: this.state.gasLimit,
@@ -100,13 +113,13 @@ const withSendCoinFormState = WrappedComponent => {
 
     validate = () => {
       const { coinAmount, toAddress, gasPrice, gasLimit } = this.state
-      const { client } = this.props
-      const max = client.fromWei(this.props.availableCoin)
+      const { client, useGas, chainConfig } = this.props
+      const max = client.toCoin(chainConfig, this.props.availableCoin)
       const errors = {
-        ...validators.validateToAddress(client, toAddress),
-        ...validators.validateCoinAmount(client, coinAmount, max),
-        ...validators.validateGasPrice(client, gasPrice),
-        ...validators.validateGasLimit(client, gasLimit)
+        ...validators.validateToAddress(chainConfig, client, toAddress),
+        ...validators.validateCoinAmount(chainConfig, client, coinAmount, max),
+        ...(useGas ? validators.validateGasPrice(client, gasPrice) : {}),
+        ...(useGas ? validators.validateGasLimit(client, gasLimit) : {})
       }
       const hasErrors = Object.keys(errors).length > 0
       if (hasErrors) this.setState({ errors })
@@ -114,7 +127,10 @@ const withSendCoinFormState = WrappedComponent => {
     }
 
     onMaxClick = () => {
-      const coinAmount = this.props.client.fromWei(this.props.availableCoin)
+      const coinAmount = this.props.client.toCoin(
+        this.props.chainConfig,
+        this.props.availableCoin
+      )
       this.onInputChange({ id: 'coinAmount', value: coinAmount })
     }
 
@@ -145,12 +161,15 @@ const withSendCoinFormState = WrappedComponent => {
   const mapStateToProps = state => ({
     coinDefaultGasLimit: selectors.getActiveChainConfig(state)
       .coinDefaultGasLimit,
+    addressPlaceholder: selectors.getAddressPlaceholder(state),
     chainGasPrice: selectors.getChainGasPrice(state),
     availableCoin: selectors.getCoinBalanceWei(state),
+    chainConfig: selectors.getActiveChainConfig(state),
     activeChain: selectors.getActiveChain(state),
     coinSymbol: selectors.getCoinSymbol(state),
     coinPrice: selectors.getCoinRate(state),
     walletId: selectors.getActiveWalletId(state),
+    useGas: selectors.getActiveChainConfig(state).chainType === 'ethereum',
     from: selectors.getActiveAddress(state)
   })
 

@@ -20,16 +20,17 @@ export function hasFunds(value) {
 }
 
 /**
+ * @param {Object} config - The active chain config object
  * @param {Object} client - A wallet client object
  * @param {string} amount - The input value to validate
  * @param {string} unit - The unit the input value is in
  *
  * @returns {boolean} True if value can be converted to wei
  */
-export function isWeiable(client, amount, unit = 'ether') {
+export function isWeiable(config, client, amount, unit = 'ether') {
   let isValid
   try {
-    client.toWei(sanitize(amount), unit)
+    client.fromCoin(config, sanitize(amount), unit)
     isValid = true
   } catch (e) {
     isValid = false

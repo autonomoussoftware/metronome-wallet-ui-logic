@@ -4,6 +4,7 @@ import { isWeiable, isHexable, sanitize, sanitizeMnemonic } from './utils'
 /**
  * Validates a generic "amount" field
  *
+ * @param {Object} config - The active chain config object
  * @param {Object} client - A wallet client object
  * @param {string} amount - The input value to validate
  * @param {string} propName - Property name to use in the errors map
@@ -12,10 +13,10 @@ import { isWeiable, isHexable, sanitize, sanitizeMnemonic } from './utils'
  *
  * @returns {Object} A mutated map of errors
  */
-function validateAmount(client, amount, propName, max, errors = {}) {
+function validateAmount(config, client, amount, propName, max, errors = {}) {
   if (!amount) {
     errors[propName] = 'Amount is required'
-  } else if (!isWeiable(client, amount)) {
+  } else if (!isWeiable(config, client, amount)) {
     errors[propName] = 'Invalid amount'
   } else if (max && parseFloat(amount) > parseFloat(max)) {
     errors[propName] = 'Insufficient funds'
@@ -28,6 +29,7 @@ function validateAmount(client, amount, propName, max, errors = {}) {
 /**
  * Validates "coin amount" fields
  *
+ * @param {Object} config - The active chain config object
  * @param {Object} client - A wallet client object
  * @param {string} coinAmount - The input value to validate
  * @param {string} max - Wallet coin balance used to validate amount maximmum
@@ -35,8 +37,14 @@ function validateAmount(client, amount, propName, max, errors = {}) {
  *
  * @returns {Object} A mutated map of errors
  */
-export function validateCoinAmount(client, coinAmount, max, errors = {}) {
-  return validateAmount(client, coinAmount, 'coinAmount', max, errors)
+export function validateCoinAmount(
+  config,
+  client,
+  coinAmount,
+  max,
+  errors = {}
+) {
+  return validateAmount(config, client, coinAmount, 'coinAmount', max, errors)
 }
 
 /**
@@ -62,10 +70,10 @@ export function validateMetAmount(client, metAmount, max, errors = {}) {
  *
  * @returns {Object} A mutated map of errors
  */
-export function validateToAddress(client, toAddress, errors = {}) {
+export function validateToAddress(config, client, toAddress, errors = {}) {
   if (!toAddress) {
     errors.toAddress = 'Address is required'
-  } else if (!client.isAddress(toAddress)) {
+  } else if (!client.isAddress(config, toAddress)) {
     errors.toAddress = 'Invalid address'
   }
   return errors
