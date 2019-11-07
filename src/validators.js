@@ -109,13 +109,14 @@ export function validateGasLimit(client, gasLimit, min, errors = {}) {
 /**
  * Validates "Gas Price" fields
  *
+ * @param {Object} config - Active hain config object
  * @param {Object} client - A wallet client object
  * @param {string} gasPrice - The input value to validate
  * @param {Object} errors - A map of errors (from other validators)
  *
  * @returns {Object} A mutated map of errors
  */
-export function validateGasPrice(client, gasPrice, errors = {}) {
+export function validateGasPrice(config, client, gasPrice, errors = {}) {
   const value = parseFloat(sanitize(gasPrice), 10)
 
   if (gasPrice === null || gasPrice === '') {
@@ -124,7 +125,7 @@ export function validateGasPrice(client, gasPrice, errors = {}) {
     errors.gasPrice = 'Invalid value'
   } else if (value <= 0) {
     errors.gasPrice = 'Gas price must be greater than 0'
-  } else if (!isWeiable(client, gasPrice, 'gwei')) {
+  } else if (!isWeiable(config, client, gasPrice, 'gwei')) {
     errors.gasPrice = 'Invalid value'
   } else if (!isHexable(client, client.toWei(gasPrice, 'gwei'))) {
     errors.gasPrice = 'Invalid value'

@@ -75,7 +75,7 @@ const withSendCoinFormState = WrappedComponent => {
 
       if (
         !this.props.client.isAddress(this.props.chainConfig, toAddress) ||
-        !utils.isWeiable(this.props.client, coinAmount)
+        !utils.isWeiable(this.props.chainConfig, this.props.client, coinAmount)
       ) {
         return
       }
@@ -113,12 +113,14 @@ const withSendCoinFormState = WrappedComponent => {
 
     validate = () => {
       const { coinAmount, toAddress, gasPrice, gasLimit } = this.state
-      const { client, useGas, chainConfig } = this.props
-      const max = client.toCoin(chainConfig, this.props.availableCoin)
+      const { client, useGas, chainConfig, availableCoin } = this.props
+      const max = client.toCoin(chainConfig, availableCoin)
       const errors = {
         ...validators.validateToAddress(chainConfig, client, toAddress),
         ...validators.validateCoinAmount(chainConfig, client, coinAmount, max),
-        ...(useGas ? validators.validateGasPrice(client, gasPrice) : {}),
+        ...(useGas
+          ? validators.validateGasPrice(chainConfig, client, gasPrice)
+          : {}),
         ...(useGas ? validators.validateGasLimit(client, gasLimit) : {})
       }
       const hasErrors = Object.keys(errors).length > 0
