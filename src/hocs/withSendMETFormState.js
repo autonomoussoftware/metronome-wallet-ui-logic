@@ -15,6 +15,11 @@ const withSendMETFormState = WrappedComponent => {
       chainGasPrice: PropTypes.string.isRequired,
       availableMET: PropTypes.string.isRequired,
       activeChain: PropTypes.string.isRequired,
+      chainConfig: PropTypes.shape({
+        chainType: PropTypes.string.isRequired,
+        chainId: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+          .isRequired
+      }).isRequired,
       walletId: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
         .isRequired,
       client: PropTypes.shape({
@@ -60,7 +65,7 @@ const withSendMETFormState = WrappedComponent => {
       const { metAmount, toAddress } = this.state
 
       if (
-        !this.props.client.isAddress(toAddress) ||
+        !this.props.client.isAddress(this.props.chainConfig, toAddress) ||
         !utils.isWeiable(this.props.client, metAmount)
       ) {
         return
@@ -142,6 +147,7 @@ const withSendMETFormState = WrappedComponent => {
     metTokenAddress: selectors.getActiveChainConfig(state).metTokenAddress,
     chainGasPrice: selectors.getChainGasPrice(state),
     availableMET: selectors.getMetBalanceWei(state),
+    chainConfig: selectors.getActiveChainConfig(state),
     activeChain: selectors.getActiveChain(state),
     walletId: selectors.getActiveWalletId(state),
     from: selectors.getActiveAddress(state)
