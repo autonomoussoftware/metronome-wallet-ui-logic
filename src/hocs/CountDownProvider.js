@@ -27,7 +27,7 @@ export default class CountDownProvider extends React.Component {
   }
 
   getCountdownValues = targetTime =>
-    moment.preciseDiff(moment.unix(targetTime), moment(), true)
+    moment.preciseDiff(moment(targetTime), moment(), true)
 
   render() {
     const { firstDateWasLater: inFuture, ...other } = this.state
