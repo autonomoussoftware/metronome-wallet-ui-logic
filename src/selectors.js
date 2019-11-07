@@ -184,11 +184,13 @@ export const getMetBalanceUSD = () => '0'
 // Returns the current coin balance of the active address in USD
 export const getCoinBalanceUSD = createSelector(
   getActiveWalletCoinBalance,
+  getActiveChainConfig,
   getCoinRate,
   getClient,
-  (balance, coinRate, client) => {
+  (balance, activeChainConfig, coinRate, client) => {
     if (!balance || !coinRate) return '0'
-    const usdValue = parseFloat(client.fromWei(balance)) * coinRate
+    const usdValue =
+      parseFloat(client.toCoin(activeChainConfig, balance)) * coinRate
     return usdValue.toFixed(2)
   }
 )
