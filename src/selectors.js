@@ -224,15 +224,13 @@ export const getCurrentAuction = createSelector(
 
 // Returns the auction price on the active chain (in USD)
 export const getAuctionPriceUSD = createSelector(
-  getActiveChainConfig,
   getAuctionStatus,
   getCoinRate,
   getClient,
-  (activeChainConfig, auctionStatus, coinRate, client) => {
+  (auctionStatus, coinRate, client) => {
     if (!auctionStatus || !coinRate) return '0'
     const usdValue =
-      parseFloat(client.toCoin(activeChainConfig, auctionStatus.currentPrice)) *
-      coinRate
+      parseFloat(client.fromWei(auctionStatus.currentPrice)) * coinRate
     return usdValue.toFixed(2)
   }
 )
@@ -263,16 +261,13 @@ export const getConverterPrice = createSelector(
 
 // Returns the converter price on the active chain (in USD)
 export const getConverterPriceUSD = createSelector(
-  getActiveChainConfig,
   getConverterStatus,
   getCoinRate,
   getClient,
-  (activeChainConfig, converterStatus, coinRate, client) => {
+  (converterStatus, coinRate, client) => {
     if (!converterStatus || !coinRate) return '0'
     const usdValue =
-      parseFloat(
-        client.toCoin(activeChainConfig, converterStatus.currentPrice)
-      ) * coinRate
+      parseFloat(client.fromWei(converterStatus.currentPrice)) * coinRate
     return usdValue.toFixed(2)
   }
 )
