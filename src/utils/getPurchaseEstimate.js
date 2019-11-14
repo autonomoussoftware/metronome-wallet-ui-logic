@@ -15,17 +15,20 @@ BigNumber.config({ FORMAT: format })
  * and a possible coin return for that purchase.
  *
  * @param {Object} params - Params required for the estimate
+ * @param {string} params.remaining - The remaining tokens in current auction
  * @param {string} params.client - The client object
  * @param {string} params.amount - The user-provided amount (in ETH)
  * @param {string} params.rate - The current auction price
- * @param {string} params.remaining - The remaining tokens in current auction
  *
  * @returns {Object} result - The purchase estimate
  * @returns {boolean} result.excedes - True if purchase will deplete the current auction
  * @returns {string} result.usedCoinAmount - The amount of coin effectively used in the purchase
  * @returns {string} result.excessCoinAmount - The amount of coin returned from purchase if auction was depleted
  */
-export function getPurchaseEstimate({ client, amount, rate, remaining }) {
+export function getPurchaseEstimate({ remaining, client, amount, rate }) {
+  // Auction price is expressed in wei (18 decimals) in every chain, so coin
+  // values must be converted to 18 decimals for calculations disregarding
+  // the chain decimals configuration value.
   let isValidAmount
   let weiAmount
   try {
@@ -62,7 +65,7 @@ export function getPurchaseEstimate({ client, amount, rate, remaining }) {
       ? weiAmount
           .minus(usedCoinAmount)
           .decimalPlaces(0)
-          .toString(10)
+          .toString()
       : null
 
   return { expectedMETamount, excedes, usedCoinAmount, excessCoinAmount }
