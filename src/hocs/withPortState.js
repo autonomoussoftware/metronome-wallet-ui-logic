@@ -17,14 +17,15 @@ const withPortState = WrappedComponent => {
       portFeatureStatus: PropTypes.oneOf([
         'no-destination-coin',
         'no-multichain',
+        'waiting-meta',
         'not-enabled',
         'offline',
         'no-coin',
         'no-met',
         'ok'
       ]).isRequired,
-      attestationThreshold: PropTypes.number.isRequired,
-      chainHopStartTime: PropTypes.string.isRequired,
+      attestationThreshold: PropTypes.number,
+      chainHopStartTime: PropTypes.number,
       failedImports: PropTypes.array.isRequired,
       coinSymbol: PropTypes.string.isRequired
     }
@@ -40,31 +41,23 @@ const withPortState = WrappedComponent => {
         coinSymbol
       } = this.props
 
-      const portDisabledReason =
-        portFeatureStatus === 'no-multichain'
-          ? 'This wallet has only one enabled chain'
-          : portFeatureStatus === 'offline'
-          ? "Can't port while offline"
-          : portFeatureStatus === 'not-enabled'
-          ? `Port operations will be enabled on ${moment
-              .unix(Number.parseInt(chainHopStartTime / 1000, 10))
-              .format('LLL')}`
-          : portFeatureStatus === 'no-coin'
-          ? `You need some ${coinSymbol} to pay for port gas`
-          : portFeatureStatus === 'no-destination-coin'
-          ? `You need some funds in the destination chains to pay for port gas`
-          : portFeatureStatus === 'no-met'
-          ? 'You need some MET to port'
-          : null
+      const portDisabledReason = {
+        'no-destination-coin': `You need some funds in the destination chains to pay for port gas`,
+        'no-multichain': 'This wallet has only one enabled chain',
+        'waiting-meta': 'Waiting for current chain port feature status',
+        'not-enabled': `Port operations will be enabled on ${moment(
+          chainHopStartTime
+        ).format('LLL')}`,
+        'no-coin': `You need some ${coinSymbol} to pay for port gas`,
+        'no-met': 'You need some MET to port',
+        offline: "Can't port while offline"
+      }[portFeatureStatus]
 
-      const retryDisabledReason =
-        retryImportFeatureStatus === 'no-multichain'
-          ? 'This wallet has only one enabled chain'
-          : retryImportFeatureStatus === 'offline'
-          ? "Can't retry while offline"
-          : retryImportFeatureStatus === 'no-coin'
-          ? `You need some ${coinSymbol} to pay for import gas`
-          : null
+      const retryDisabledReason = {
+        'no-multichain': 'This wallet has only one enabled chain',
+        'no-coin': `You need some ${coinSymbol} to pay for import gas`,
+        offline: "Can't retry while offline"
+      }[retryImportFeatureStatus]
 
       return (
         <WrappedComponent

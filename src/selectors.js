@@ -598,41 +598,35 @@ export const portFeatureStatus = createSelector(
   getActiveWalletMetBalance,
   getChainsWithBalances,
   getActiveChain,
-  getChainsById,
+  getChainMeta,
   getIsOnline,
   getConfig,
   // eslint-disable-next-line max-params
-  (coinBalance, metBalance, balances, activeChain, chainsById, isOnline, cfg) =>
-    cfg.enabledChains.length > 0
+  (coinBalance, metBalance, balances, activeChain, chainMeta, isOnline, cfg) =>
+    cfg.enabledChains.length > 1
       ? isOnline
-        ? Object.keys(chainsById).filter(
-            id => !chainsById[id].meta.isChainHopEnabled
-          ).length === 0
-          ? utils.hasFunds(coinBalance)
-            ? utils.hasFunds(metBalance)
-              ? balances.filter(
-                  chain =>
-                    chain.id !== activeChain &&
-                    utils.hasFunds(chain.coinBalance)
-                ).length > 0
-                ? 'ok'
-                : 'no-destination-coin'
-              : 'no-met'
-            : 'no-coin'
-          : 'not-enabled'
+        ? typeof chainMeta.chainHopStartTime === 'number'
+          ? chainMeta.isChainHopEnabled
+            ? utils.hasFunds(coinBalance)
+              ? utils.hasFunds(metBalance)
+                ? balances.filter(
+                    chain =>
+                      chain.id !== activeChain &&
+                      utils.hasFunds(chain.coinBalance)
+                  ).length > 0
+                  ? 'ok'
+                  : 'no-destination-coin'
+                : 'no-met'
+              : 'no-coin'
+            : 'not-enabled'
+          : 'waiting-meta'
         : 'offline'
       : 'no-multichain'
 )
 
-// Returns the "latest" chain hop start time from all active chains
 export const getChainHopStartTime = createSelector(
-  getChainsById,
-  chainsById =>
-    Math.max(
-      ...Object.keys(chainsById)
-        .map(chainId => chainsById[chainId].meta.chainHopStartTime)
-        .filter(timestamp => typeof timestamp === 'number')
-    ).toString()
+  getChainMeta,
+  chainMeta => chainMeta.chainHopStartTime
 )
 
 export const getChainsReadyStatus = createSelector(
