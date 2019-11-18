@@ -102,12 +102,12 @@ const withSendMETFormState = WrappedComponent => {
 
     validate = () => {
       const { metAmount, toAddress, gasPrice, gasLimit } = this.state
-      const { client } = this.props
+      const { client, chainConfig } = this.props
       const max = client.fromWei(this.props.availableMET)
       const errors = {
-        ...validators.validateToAddress(client, toAddress),
-        ...validators.validateMetAmount(client, metAmount, max),
-        ...validators.validateGasPrice(client, gasPrice),
+        ...validators.validateToAddress(chainConfig, client, toAddress),
+        ...validators.validateMetAmount(chainConfig, client, metAmount, max),
+        ...validators.validateGasPrice(chainConfig, client, gasPrice),
         ...validators.validateGasLimit(client, gasLimit)
       }
       const hasErrors = Object.keys(errors).length > 0

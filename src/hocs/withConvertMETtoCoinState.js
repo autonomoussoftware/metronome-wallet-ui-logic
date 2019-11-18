@@ -131,7 +131,7 @@ const withConvertMETtoCoinState = WrappedComponent => {
       const { client, chainConfig } = this.props
       const max = client.fromWei(this.props.availableMET)
       const errors = {
-        ...validators.validateMetAmount(client, metAmount, max),
+        ...validators.validateMetAmount(chainConfig, client, metAmount, max),
         ...validators.validateGasPrice(chainConfig, client, gasPrice),
         ...validators.validateGasLimit(client, gasLimit),
         ...validators.validateUseMinimum(useMinimum, estimate)
