@@ -23,6 +23,11 @@ const withRetryImportFormState = WrappedComponent => {
         metTokenAddress: PropTypes.string.isRequired
       }).isRequired,
       chainGasPrice: PropTypes.string.isRequired,
+      chainConfig: PropTypes.shape({
+        chainType: PropTypes.string.isRequired,
+        chainId: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+          .isRequired
+      }).isRequired,
       activeChain: PropTypes.string.isRequired,
       importData: PropTypes.object,
       walletId: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
@@ -95,10 +100,10 @@ const withRetryImportFormState = WrappedComponent => {
       })
 
     validate = () => {
+      const { client, chainConfig } = this.props
       const { gasPrice, gasLimit } = this.state
-      const { client } = this.props
       const errors = {
-        ...validators.validateGasPrice(client, gasPrice),
+        ...validators.validateGasPrice(chainConfig, client, gasPrice),
         ...validators.validateGasLimit(client, gasLimit)
       }
       const hasErrors = Object.keys(errors).length > 0
@@ -151,6 +156,7 @@ const withRetryImportFormState = WrappedComponent => {
       .metDefaultGasLimit,
     activeChainConfig: selectors.getActiveChainConfig(state),
     chainGasPrice: selectors.getChainGasPrice(state),
+    chainConfig: selectors.getActiveChainConfig(state),
     activeChain: selectors.getActiveChain(state),
     walletId: selectors.getActiveWalletId(state)
   })
