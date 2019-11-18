@@ -50,6 +50,7 @@ export function validateCoinAmount(
 /**
  * Validates "MET amount" fields
  *
+ * @param {Object} config - The active chain config object
  * @param {Object} client - A wallet client object
  * @param {string} metAmount - The input value to validate
  * @param {string} max - Wallet coin balance used to validate amount maximmum
@@ -57,8 +58,8 @@ export function validateCoinAmount(
  *
  * @returns {Object} A mutated map of errors
  */
-export function validateMetAmount(client, metAmount, max, errors = {}) {
-  return validateAmount(client, metAmount, 'metAmount', max, errors)
+export function validateMetAmount(cfg, client, metAmount, max, errors = {}) {
+  return validateAmount(cfg, client, metAmount, 'metAmount', max, errors)
 }
 
 /**
@@ -240,6 +241,21 @@ export function validatePasswordCreation(
 export function validateUseMinimum(useMinimum, estimate, errors = {}) {
   if (useMinimum && !estimate) {
     errors.useMinimum = 'No estimated return. Try again.'
+  }
+  return errors
+}
+
+/**
+ * Validates "Destination" field of a port form
+ *
+ * @param {string} destination - The input value to validate
+ * @param {Object} errors - A map of errors (from other validators)
+ *
+ * @returns {Object} A mutated map of errors
+ */
+export function validateDestination(destination, errors = {}) {
+  if (!destination) {
+    errors.destination = 'Destination is required'
   }
   return errors
 }

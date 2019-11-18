@@ -574,6 +574,7 @@ export const getChainsWithBalances = createSelector(
           ['byId', activeWallet, 'addresses', activeAddress, 'balance'],
           null
         ),
+        coinSymbol: chainConfig.symbol,
         balance: get(
           walletsData,
           [
@@ -671,15 +672,21 @@ export const getChainsReadyStatus = createSelector(
     })
 )
 
-// Return an array of { label, value } with available port destinations
+// Return an array of { label, value, disabledReason } with available port destinations
 export const getPortDestinations = createSelector(
+  getChainsWithBalances,
   getActiveChain,
-  getConfig,
-  (active, config) =>
-    config.enabledChains
-      .filter(chainId => chainId !== active)
-      .map(chainId => ({
-        label: config.chains[chainId].displayName,
-        value: chainId
+  getChainsById,
+  (balances, active, chainsById) =>
+    balances
+      .filter(chain => chain.id !== active)
+      .map(chain => ({
+        disabledReason: utils.hasFunds(chain.coinBalance)
+          ? chainsById[chain.id].meta.isChainHopEnabled
+            ? null
+            : 'Port not enabled yet'
+          : `No ${chain.coinSymbol} to pay for import gas`,
+        label: chain.displayName,
+        value: chain.id
       }))
 )

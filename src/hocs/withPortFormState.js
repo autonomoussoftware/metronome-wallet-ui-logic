@@ -20,6 +20,11 @@ const withPortFormState = WrappedComponent => {
       sourceDisplayName: PropTypes.string.isRequired,
       chainGasPrice: PropTypes.string.isRequired,
       availableMet: PropTypes.string.isRequired,
+      chainConfig: PropTypes.shape({
+        chainType: PropTypes.string.isRequired,
+        chainId: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+          .isRequired
+      }).isRequired,
       activeChain: PropTypes.string.isRequired,
       walletId: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
         .isRequired,
@@ -28,6 +33,7 @@ const withPortFormState = WrappedComponent => {
         portMetronome: PropTypes.func.isRequired,
         getPortFees: PropTypes.func.isRequired,
         fromWei: PropTypes.func.isRequired,
+        toCoin: PropTypes.func.isRequired,
         toWei: PropTypes.func.isRequired
       }).isRequired,
       from: PropTypes.string.isRequired
@@ -36,10 +42,17 @@ const withPortFormState = WrappedComponent => {
     static displayName = `withPortFormState(${WrappedComponent.displayName ||
       WrappedComponent.name})`
 
+    getInitialDestination = () => {
+      const destinationCandidate = this.props.availableDestinations.find(
+        ({ disabledReason }) => !disabledReason
+      )
+      return destinationCandidate ? destinationCandidate.value : ''
+    }
+
     initialState = {
       gasEstimateError: null,
       useCustomGas: false,
-      destination: this.props.availableDestinations[0].value,
+      destination: this.getInitialDestination(),
       metAmount: null,
       gasPrice: this.props.client.fromWei(this.props.chainGasPrice, 'gwei'),
       gasLimit: this.props.metDefaultGasLimit,
@@ -53,7 +66,7 @@ const withPortFormState = WrappedComponent => {
     resetForm = () =>
       this.setState({
         ...this.initialState,
-        destination: this.props.availableDestinations[0].value
+        destination: this.getInitialDestination()
       })
 
     onInputChange = ({ id, value }) => {
@@ -71,20 +84,20 @@ const withPortFormState = WrappedComponent => {
     getEstimates = debounce(() => {
       const { metAmount } = this.state
 
-      if (!utils.isWeiable(this.props.client, metAmount)) {
+      if (
+        !utils.isWeiable(this.props.chainConfig, this.props.client, metAmount)
+      ) {
         this.setState({ feeError: null, fee: null })
         return
       }
 
-      const value = this.props.client.toWei(utils.sanitize(metAmount))
-
       this.props.client
         .getPortFees({
           destinationChain: this.state.destination,
+          value: this.props.client.toWei(utils.sanitize(metAmount)),
           chain: this.props.activeChain,
           from: this.props.from,
-          to: this.props.from,
-          value
+          to: this.props.from
         })
         .then(({ fee, exportGasLimit }) =>
           this.setState({
@@ -114,12 +127,13 @@ const withPortFormState = WrappedComponent => {
       })
 
     validate = () => {
-      const { metAmount, gasPrice, gasLimit } = this.state
-      const { client } = this.props
-      const max = client.fromWei(this.props.availableMet)
+      const { client, availableMet, chainConfig } = this.props
+      const { destination, metAmount, gasPrice, gasLimit } = this.state
+      const max = client.toCoin(chainConfig, availableMet)
       const errors = {
-        ...validators.validateMetAmount(client, metAmount, max),
-        ...validators.validateGasPrice(client, gasPrice),
+        ...validators.validateDestination(destination),
+        ...validators.validateMetAmount(chainConfig, client, metAmount, max),
+        ...validators.validateGasPrice(chainConfig, client, gasPrice),
         ...validators.validateGasLimit(client, gasLimit)
       }
       const hasErrors = Object.keys(errors).length > 0
@@ -128,7 +142,10 @@ const withPortFormState = WrappedComponent => {
     }
 
     onMaxClick = () => {
-      const metAmount = this.props.client.fromWei(this.props.availableMet)
+      const metAmount = this.props.client.toCoin(
+        this.props.chainConfig,
+        this.props.availableMet
+      )
       this.onInputChange({ id: 'metAmount', value: metAmount })
     }
 
@@ -155,6 +172,7 @@ const withPortFormState = WrappedComponent => {
     sourceDisplayName: selectors.getActiveChainDisplayName(state),
     chainGasPrice: selectors.getChainGasPrice(state),
     availableMet: selectors.getMetBalanceWei(state),
+    chainConfig: selectors.getActiveChainConfig(state),
     activeChain: selectors.getActiveChain(state),
     chainsById: selectors.getChainsById(state),
     walletId: selectors.getActiveWalletId(state),
