@@ -576,6 +576,7 @@ export const getChainsWithBalances = createSelector(
           null
         ),
         coinSymbol: chainConfig.symbol,
+        address: activeAddress,
         balance: get(
           walletsData,
           [
@@ -687,6 +688,7 @@ export const getPortDestinations = createSelector(
             ? null
             : 'Port not enabled yet'
           : `No ${chain.coinSymbol} to pay for import gas`,
+        address: chain.address,
         label: chain.displayName,
         value: chain.id
       }))

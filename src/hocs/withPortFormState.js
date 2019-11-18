@@ -13,6 +13,8 @@ const withPortFormState = WrappedComponent => {
       metDefaultGasLimit: PropTypes.string.isRequired,
       availableDestinations: PropTypes.arrayOf(
         PropTypes.shape({
+          disabledReason: PropTypes.string,
+          address: PropTypes.string.isRequired,
           label: PropTypes.string.isRequired,
           value: PropTypes.string.isRequired
         })
@@ -123,7 +125,9 @@ const withPortFormState = WrappedComponent => {
         from: this.props.from,
         gas: this.state.gasLimit,
         fee: this.state.fee,
-        to: this.props.from
+        to: this.props.availableDestinations.find(
+          ({ value }) => value === this.state.destination
+        ).address
       })
 
     validate = () => {
