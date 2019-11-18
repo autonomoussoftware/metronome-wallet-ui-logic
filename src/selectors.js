@@ -112,7 +112,9 @@ const getActiveWalletAddresses = createSelector(
       : null
 )
 
-// Returns the active address
+// Returns the active address.
+// It is ok to assume first address as active because only valid addresses are
+// included in current wallet data
 export const getActiveAddress = createSelector(
   getActiveWalletAddresses,
   addresses => get(addresses, 0, null)
@@ -530,15 +532,14 @@ export const getFailedImports = createSelector(
 
       const burnHash = get(tx, 'meta.metronome.export.currentBurnHash', null)
 
-      const wasImportRequested =
-        (activeAddressData.transactions || []).findIndex(
-          transaction =>
-            get(
-              transaction,
-              'meta.metronome.importRequest.currentBurnHash',
-              null
-            ) === burnHash
-        ) > -1
+      const wasImportRequested = !!(activeAddressData.transactions || []).find(
+        transaction =>
+          get(
+            transaction,
+            'meta.metronome.importRequest.currentBurnHash',
+            null
+          ) === burnHash
+      )
 
       return (
         isExport &&
