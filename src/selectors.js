@@ -68,14 +68,8 @@ export const getIsMultiChain = createSelector(
   config => (config.enabledChains || []).length > 1
 )
 
-// Returns the "connectivity" state branch
-export const getConnectivity = state => state.connectivity
-
 // Returns if the wallet is online or not (check reducer to see conditions)
-export const getIsOnline = createSelector(
-  getConnectivity,
-  connectivityStatus => connectivityStatus.isOnline
-)
+export const getIsOnline = state => state.isOnline
 
 // Returns if user is logged id or not
 export const getIsLoggedIn = state => state.session.isLoggedIn
@@ -203,6 +197,20 @@ export const getCoinBalanceUSD = createSelector(
   }
 )
 
+// Returns an object of connection statuses { [connection label]: boolean }
+export const getActiveChainConnectivity = createSelector(
+  getActiveChainConfig,
+  getActiveChainData,
+  ({ connections }, { connectivity }) =>
+    Object.keys(connections || {}).reduce((acc, connectionKey) => {
+      acc[connections[connectionKey]] =
+        typeof connectivity[connectionKey] === 'undefined'
+          ? true
+          : connectivity[connectionKey]
+      return acc
+    }, {})
+)
+
 // Returns the "auction" state branch for the active chain
 export const getAuction = createSelector(
   getActiveChainData,
@@ -309,27 +317,12 @@ export const getChainGasPrice = createSelector(
       : chainMeta.gasPrice
 )
 
-// Returns the active chain connection status
-export const getChainConnectionStatus = createSelector(
-  getActiveChain,
-  getChainMeta,
-  (activeChain, chainMeta) => (activeChain ? chainMeta.isWeb3Connected : null)
-)
-
 // Returns the explorer URL for a specific transaction
 export const getExplorerUrl = createSelector(
   getActiveChainConfig,
   (_, props) => props.hash,
   (config, hash) =>
     config.explorerUrl ? config.explorerUrl.replace('{{hash}}', hash) : '#'
-)
-
-// Returns the indexer connection status
-export const getIndexerConnectionStatus = createSelector(
-  getActiveChain,
-  getChainMeta,
-  (activeChain, chainMeta) =>
-    activeChain ? chainMeta.isIndexerConnected : null
 )
 
 // Returns the amount of confirmations for a given transaction

@@ -1,6 +1,7 @@
 import { combineReducers } from 'redux'
 import get from 'lodash/get'
 
+import connectivity from './connectivity'
 import converter from './converter'
 import wallets from './wallets'
 import auction from './auction'
@@ -17,6 +18,7 @@ const createChainReducer = chain => (state, action) => {
     return state
   }
   return combineReducers({
+    connectivity,
     converter,
     auction,
     wallets,

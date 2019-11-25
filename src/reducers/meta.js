@@ -4,10 +4,8 @@ import get from 'lodash/get'
 const initialState = {
   attestationThreshold: null,
   bestBlockTimestamp: null,
-  isIndexerConnected: null,
   chainHopStartTime: null,
   isChainHopEnabled: null,
-  isWeb3Connected: null,
   rateLastUpdated: null,
   gasPrice: null,
   height: -1,
@@ -16,21 +14,9 @@ const initialState = {
 
 const reducer = handleActions(
   {
-    'explorer-connection-status-changed': (state, { payload }) => ({
-      ...state,
-      isIndexerConnected: payload.connected
-    }),
-
-    'web3-connection-status-changed': (state, { payload }) => ({
-      ...state,
-      isWeb3Connected: payload.connected
-    }),
-
     'initial-state-received': (state, { payload }) => ({
       ...state,
       ...get(payload, 'meta', {}),
-      isIndexerConnected: null, // ignore indexer connection status persisted state
-      isWeb3Connected: null, // ignore web3 connection status persisted state
       gasPrice: get(payload, 'meta.gasPrice', payload.config.defaultGasPrice)
     }),
 

@@ -1,31 +1,28 @@
-import { handleActions, combineActions } from 'redux-actions'
+const initialState = {}
 
-const initialState = {
-  isOnline: true
+const ACTION_TYPE_SUFFIX = '-connection-status-changed'
+
+/**
+ * The active chain connectivity state
+ *
+ * @param {boolean} state - The current state
+ * @param {Object} action - A standard Redux action
+ * @returns {boolean} - The next state
+ */
+export default function(state = initialState, action) {
+  // ignore connections persisted state
+  if (action.type === 'initial-state-received') {
+    return initialState
+  }
+
+  // update connection state on messages with a specific suffix
+  const [connectionKey, ...other] = action.type.split(ACTION_TYPE_SUFFIX)
+  if (other.length) {
+    return {
+      ...state,
+      [connectionKey]: action.payload.connected
+    }
+  }
+
+  return state
 }
-
-// Set connectivity status to 'online' if any of these actions is received
-const CONNECTIVITY_PROOF_ACTIONS = [
-  'converter-status-updated',
-  'auction-status-updated',
-  'auction-status-updated',
-  'wallet-state-changed',
-  'coin-price-updated',
-  'coin-block'
-]
-
-const reducer = handleActions(
-  {
-    'connectivity-state-changed': (state, action) => ({
-      ...state,
-      isOnline: Boolean(action.payload.ok)
-    }),
-    [combineActions(...CONNECTIVITY_PROOF_ACTIONS)]: state => ({
-      ...state,
-      isOnline: true
-    })
-  },
-  initialState
-)
-
-export default reducer
