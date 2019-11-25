@@ -4,8 +4,8 @@ import * as selectors from '../selectors'
 
 const mapStateToProps = state => ({
   // default to null until initial state is received
-  isConnected: state.chains.active
-    ? selectors.getChainConnectionStatus(state)
+  connections: state.chains.active
+    ? selectors.getActiveChainConnectivity(state)
     : null,
 
   // default to null until initial state is received
