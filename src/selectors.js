@@ -164,6 +164,12 @@ export const getCoinDecimals = createSelector(
   activeChainConfig => activeChainConfig.decimals
 )
 
+// Returns the current chain block time
+export const getBlockTime = createSelector(
+  getActiveChainConfig,
+  activeChainConfig => activeChainConfig.blockTime
+)
+
 // Returns a valid address placeholder according to the active chain type
 export const getAddressPlaceholder = createSelector(
   getActiveChainConfig,

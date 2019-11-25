@@ -1,10 +1,14 @@
+import { connect } from 'react-redux'
 import PropTypes from 'prop-types'
 import moment from 'moment'
 import React from 'react'
 
-export default class TimeAgo extends React.Component {
+import * as selectors from '../selectors'
+
+class TimeAgo extends React.Component {
   static propTypes = {
     updateInterval: PropTypes.number,
+    blockTime: PropTypes.number.isRequired,
     timestamp: PropTypes.number.isRequired,
     render: PropTypes.func
   }
@@ -33,9 +37,21 @@ export default class TimeAgo extends React.Component {
     if (typeof this.props.timestamp !== 'number') return null
     const timeAgo = moment.unix(this.props.timestamp).fromNow()
     const diff = parseInt(Date.now() / 1000, 10) - this.props.timestamp
+    const level =
+      diff > this.props.blockTime * 4
+        ? 'danger'
+        : diff > this.props.blockTime
+        ? 'warning'
+        : 'ok'
 
     return typeof this.props.render === 'function'
-      ? this.props.render({ timeAgo, diff })
+      ? this.props.render({ timeAgo, level })
       : timeAgo
   }
 }
+
+const mapStateToProps = state => ({
+  blockTime: selectors.getBlockTime(state)
+})
+
+export default connect(mapStateToProps)(TimeAgo)
