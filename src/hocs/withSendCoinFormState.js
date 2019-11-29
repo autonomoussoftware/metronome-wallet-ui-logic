@@ -74,6 +74,7 @@ const withSendCoinFormState = WrappedComponent => {
       const { coinAmount, toAddress } = this.state
 
       if (
+        !toAddress ||
         !this.props.client.isAddress(this.props.chainConfig, toAddress) ||
         !utils.isWeiable(this.props.chainConfig, this.props.client, coinAmount)
       ) {
