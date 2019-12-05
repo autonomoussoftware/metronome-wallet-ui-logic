@@ -2,7 +2,8 @@ import { handleActions } from 'redux-actions'
 
 const initialState = {
   hasEnoughData: false,
-  isLoggedIn: false
+  isLoggedIn: false,
+  lastError: null
 }
 
 const reducer = handleActions(
@@ -14,6 +15,10 @@ const reducer = handleActions(
     'required-data-gathered': state => ({
       ...state,
       hasEnoughData: true
+    }),
+    'wallet-error': (state, { payload }) => ({
+      ...state,
+      lastError: payload.message
     })
   },
   initialState

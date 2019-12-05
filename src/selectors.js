@@ -371,6 +371,10 @@ export const getTxSyncStatus = createSelector(
 // Renderer will display the "Gathering data..." screen until it does.
 export const hasEnoughData = state => state.session.hasEnoughData
 
+// Returns the message of the last wallet-error message received
+// Useful for watching changes and fire notifications
+export const getLastError = state => state.session.lastError
+
 // Returns the status of the "Send" feature (ETH & MET) on the active chain
 export const sendFeatureStatus = createSelector(
   getActiveWalletCoinBalance,
