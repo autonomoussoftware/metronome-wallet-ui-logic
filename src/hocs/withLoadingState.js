@@ -8,7 +8,7 @@ import * as selectors from '../selectors'
 
 // Time to wait before updating checklist status (in ms)
 // The idea is to prevent fast-loading checklists which would look like a glitch
-const MIN_CADENCE = 200
+const MIN_CADENCE = 50
 
 // Time to wait before exiting the loading screen (in ms)
 const ON_COMPLETE_DELAY = 20
@@ -48,52 +48,41 @@ const withLoadingState = WrappedComponent => {
       }
     }
 
+    setTask = (chainName, taskName) => {
+      this.setState(
+        state => ({
+          ...state,
+          [chainName]: {
+            ...state[chainName],
+            [taskName]: true
+          }
+        }),
+        this.checkFinished
+      )
+    }
+
+    // eslint-disable-next-line complexity
     checkTasks = () => {
-      mapValues(this.props.chainsStatus, (currentStatus, chainName) => {
+      // eslint-disable-next-line no-unused-vars
+      for (const chainName in this.props.chainsStatus) {
+        const currentStatus = this.props.chainsStatus[chainName]
         const prevStatus = this.state[chainName] || {}
         if (currentStatus.hasBlockHeight && !prevStatus.hasBlockHeight) {
-          this.setState(
-            state => ({
-              ...state,
-              [chainName]: { ...state[chainName], hasBlockHeight: true }
-            }),
-            this.checkFinished
-          )
-          return
+          this.setTask(chainName, 'hasBlockHeight')
+          break
         }
         if (currentStatus.hasCoinRate && !prevStatus.hasCoinRate) {
-          this.setState(
-            state => ({
-              ...state,
-              [chainName]: { ...state[chainName], hasCoinRate: true }
-            }),
-            this.checkFinished,
-            this.checkFinished
-          )
-          return
+          this.setTask(chainName, 'hasCoinRate')
+          break
         }
         if (currentStatus.hasCoinBalance && !prevStatus.hasCoinBalance) {
-          this.setState(
-            state => ({
-              ...state,
-              [chainName]: { ...state[chainName], hasCoinBalance: true }
-            }),
-            this.checkFinished,
-            this.checkFinished
-          )
-          return
+          this.setTask(chainName, 'hasCoinBalance')
+          break
         }
         if (currentStatus.hasMetBalance && !prevStatus.hasMetBalance) {
-          this.setState(
-            state => ({
-              ...state,
-              [chainName]: { ...state[chainName], hasMetBalance: true }
-            }),
-            this.checkFinished,
-            this.checkFinished
-          )
+          this.setTask(chainName, 'hasMetBalance')
         }
-      })
+      }
     }
 
     componentDidMount() {
