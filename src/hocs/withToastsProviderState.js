@@ -85,7 +85,7 @@ const withToastsProviderState = (WrappedComponent, preAdd, preRemove) => {
 
     onShowMoreClick = type => this.clearTimeout(type)
 
-    contextValue = { toast: this.addToast }
+    contextValue = { toast: this.addToast, removeToast: this.removeToast }
 
     componentDidUpdate(prevProps) {
       if (

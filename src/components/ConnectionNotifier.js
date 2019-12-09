@@ -7,12 +7,21 @@ import { ToastsContext } from '../hocs/withToastsProviderState'
 class ConnectionNotifier extends React.Component {
   static propTypes = {
     connections: PropTypes.objectOf(PropTypes.bool),
-    chainName: PropTypes.string
+    chainName: PropTypes.string,
+    isOnline: PropTypes.bool.isRequired
   }
 
   static contextType = ToastsContext
 
   componentDidUpdate(prevProps) {
+    if (prevProps.isOnline && !this.props.isOnline) {
+      this.context.toast(
+        'error',
+        'Your device is not connected to the internet',
+        { autoClose: 0 }
+      )
+    }
+
     // Avoid launching toasts when switching chains
     if (prevProps.chainName !== this.props.chainName) return
 
@@ -45,6 +54,10 @@ class ConnectionNotifier extends React.Component {
 
 // We have to do this indirection because React 16.7.0 doesn't support using
 // both contextType and Redux context at the same time
-export default withConnectionState(({ chainName, connections }) => (
-  <ConnectionNotifier chainName={chainName} connections={connections} />
+export default withConnectionState(({ chainName, connections, isOnline }) => (
+  <ConnectionNotifier
+    connections={connections}
+    chainName={chainName}
+    isOnline={isOnline}
+  />
 ))
