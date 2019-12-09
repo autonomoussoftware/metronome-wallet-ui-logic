@@ -17,6 +17,7 @@ class Root extends React.Component {
     client: PropTypes.shape({
       onOnboardingCompleted: PropTypes.func.isRequired,
       onLoginSubmit: PropTypes.func.isRequired,
+      onStop: PropTypes.func.isRequired,
       onInit: PropTypes.func.isRequired
     }).isRequired
   }
@@ -37,6 +38,10 @@ class Root extends React.Component {
       })
       // eslint-disable-next-line no-console
       .catch(console.warn)
+  }
+
+  componentWillUnmount() {
+    this.props.client.onStop()
   }
 
   onOnboardingCompleted = ({ password, mnemonic }) =>
