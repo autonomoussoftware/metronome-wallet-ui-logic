@@ -16,6 +16,7 @@ const withToastsProviderState = (WrappedComponent, preAdd, preRemove) => {
   class Container extends React.Component {
     static propTypes = {
       messagesPerToast: PropTypes.number,
+      txSyncStatus: PropTypes.oneOf(['syncing', 'up-to-date', 'failed']),
       autoClose: PropTypes.number,
       lastError: PropTypes.string,
       children: PropTypes.node.isRequired
@@ -93,6 +94,12 @@ const withToastsProviderState = (WrappedComponent, preAdd, preRemove) => {
       ) {
         this.addToast('error', this.props.lastError, { autoClose: 15000 })
       }
+      if (
+        this.props.txSyncStatus === 'failed' &&
+        this.props.txSyncStatus !== prevProps.txSyncStatus
+      ) {
+        this.addToast('error', 'Could not sync transactions/events')
+      }
     }
 
     render() {
@@ -114,6 +121,7 @@ const withToastsProviderState = (WrappedComponent, preAdd, preRemove) => {
   }
 
   const mapStateToProps = state => ({
+    txSyncStatus: selectors.getTxSyncStatus(state),
     lastError: selectors.getLastError(state)
   })
 

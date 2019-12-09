@@ -364,7 +364,7 @@ export const hasTransactions = createSelector(
 // Returns wallet transactions sync status on the active chain
 export const getTxSyncStatus = createSelector(
   getActiveChainData,
-  chainData => chainData.wallets.syncStatus
+  chainData => get(chainData, 'wallets.syncStatus', null)
 )
 
 // Returns if renderer has enough data to load the wallet UI.
