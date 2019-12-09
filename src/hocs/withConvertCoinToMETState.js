@@ -124,7 +124,7 @@ const withConvertCoinToMETState = WrappedComponent => {
       }
       client
         .getConvertCoinEstimate({
-          value: client.fromCoin(chainConfig, utils.sanitize(coinAmount)),
+          value: client.toWei(utils.sanitize(coinAmount)),
           chain: this.props.activeChain
         })
         .then(({ result }) => {
@@ -149,10 +149,7 @@ const withConvertCoinToMETState = WrappedComponent => {
         gasPrice: this.props.client.toWei(this.state.gasPrice, 'gwei'),
         walletId: this.props.walletId,
         password,
-        value: this.props.client.fromCoin(
-          this.props.chainConfig,
-          utils.sanitize(this.state.coinAmount)
-        ),
+        value: this.props.client.toWei(utils.sanitize(this.state.coinAmount)),
         chain: this.props.activeChain,
         from: this.props.from,
         gas: this.state.gasLimit
