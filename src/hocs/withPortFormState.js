@@ -133,7 +133,7 @@ const withPortFormState = WrappedComponent => {
     validate = () => {
       const { client, availableMet, chainConfig } = this.props
       const { destination, metAmount, gasPrice, gasLimit } = this.state
-      const max = client.toCoin(chainConfig, availableMet)
+      const max = client.fromWei(availableMet)
       const errors = {
         ...validators.validateDestination(destination),
         ...validators.validateMetAmount(chainConfig, client, metAmount, max),
@@ -146,10 +146,7 @@ const withPortFormState = WrappedComponent => {
     }
 
     onMaxClick = () => {
-      const metAmount = this.props.client.toCoin(
-        this.props.chainConfig,
-        this.props.availableMet
-      )
+      const metAmount = this.props.client.fromWei(this.props.availableMet)
       this.onInputChange({ id: 'metAmount', value: metAmount })
     }
 
