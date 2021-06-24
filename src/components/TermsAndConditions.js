@@ -3,7 +3,7 @@ import React from 'react'
 
 const TermsAndConditions = ({ ParagraphComponent: P }) => (
   <React.Fragment>
-    <P>Copyright 2018-2019 Autonomous Software</P>
+    <P>Copyright 2018-{new Date().getFullYear().toString()} Autonomous Software</P>
     <P>
       Permission is hereby granted, free of charge, to any person obtaining a
       copy of this software and associated documentation files (the
