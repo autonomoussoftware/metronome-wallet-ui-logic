@@ -1,6 +1,6 @@
 {
   "name": "metronome-wallet-ui-logic",
-  "version": "3.5.1",
+  "version": "3.5.2",
   "description": "UI logic to develop an Ethereum Metronome wallet with React and Redux",
   "keywords": [
     "crypto",
